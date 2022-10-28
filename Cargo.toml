@@ -1,0 +1,26 @@
+[package]
+name = "rofi-vscode-mode"
+version = "0.1.0"
+authors = ["Alessandro Fulgini <fuljo97@gmail.com>"]
+edition = "2021"
+description = "A Rofi mode to open Visual Studio Code workspaces"
+repository = "https://github.com/fuljo/rofi-vscode-mode/"
+license = "MIT"
+keywords = ["rofi", "mode", "plugin", "vscode"]
+categories = ["command-line-utilities"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+anyhow = "1.0"
+dirs = "4.0"
+rofi-mode = "0.2"
+rusqlite = { version = "0.28", features = ["serde_json"]}
+serde_json = "1.0"
+shellexpand = "2.1"
+strum = { version = "0.24", features = ["derive"] }
+url = "2.3"
+which = "4.3"
