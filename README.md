@@ -39,6 +39,12 @@ configuration {
 
 I highly reccommend assigning a keyboard shortcut for this; for example I use <kbd>Mod</kbd> + <kbd>C</kbd> to run `rofi -show vscode-recent` (after adding it to my default modi).
 
+When an item is selected, press:
+- <kbd>Enter</kbd> to open it
+- <kbd>Shift</kbd>+<kbd>Del</kbd> to permanently delete it from the list
+
+:warning: Item deletion works by updating the recent items list in VSCode's state database. Do it at your own risk. Please use this feature when VSCode is closed, otherwise your changes may be overwritten.
+
 ## Configuration
 Various aspects of this plugin can be configured with environment variables.
 If you are using keyboard shortcuts to launch Rofi, make sure that these variables are set in Usagethe shell that launches Rofi, e.g. by adding an `export` statement to your `~/.bash_profile`.
@@ -71,7 +77,7 @@ After choosing a suitable VSCode distribution, the plugin reads these structures
 ## Roadmap
 
 - [x] Support for recent workspaces, files and folders
-- [ ] Support for item deletion
+- [x] Support for item deletion
 - [ ] Enable icons with an environment variable `ROFI_VSCODE_ICONS`
 - [ ] Command line tool (drun-compatible?)
 - [ ] Configurable icons: from icon theme or nerd font

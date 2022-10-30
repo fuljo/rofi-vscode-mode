@@ -5,6 +5,7 @@ use std::{
 };
 
 use anyhow::{anyhow, Context, Result};
+use rusqlite::{Connection, OpenFlags};
 use url::Url;
 use which::which;
 
@@ -73,7 +74,7 @@ impl FromStr for Distribution {
 /// - [Workspaces History Main Service](https://github.com/microsoft/vscode/blob/main/src/vs/platform/workspaces/electron-main/workspacesHistoryMainService.ts)
 /// - [workspaces common definitions](https://github.com/microsoft/vscode/blob/main/src/vs/platform/workspaces/common/workspaces.ts)
 pub mod workspaces {
-    use super::{path_from_url, tildify, Distribution};
+    use super::{open_state_db, path_from_url, tildify, Distribution};
     use std::{
         borrow::Cow,
         fmt::{self, Display},
@@ -81,9 +82,9 @@ pub mod workspaces {
     };
 
     use anyhow::{anyhow, Context};
-    use rusqlite::Connection;
-    use serde::Deserialize;
-    use serde_json::Value;
+    use rusqlite::{params, OpenFlags};
+    use serde::{Deserialize, Serialize};
+    use serde_json::{json, Value};
 
     const VSCDB_HISTORY_KEY: &str = "history.recentlyOpenedPathsList";
 
@@ -92,7 +93,7 @@ pub mod workspaces {
     /// The workspace has an associated `<name>.code-workspace` config file, which represented in the [`Self::config_path`].
     ///
     /// See [this documentation article](https://code.visualstudio.com/docs/editor/workspaces) for reference.
-    #[derive(Deserialize, Debug)]
+    #[derive(Serialize, Deserialize, Debug)]
     #[serde(rename_all = "camelCase")]
     pub struct WorkspaceIdentifier {
         /// Unique identifier of the workspace
@@ -106,7 +107,7 @@ pub mod workspaces {
     }
 
     /// A recently opened item
-    #[derive(Deserialize, Debug)]
+    #[derive(Serialize, Deserialize, Debug)]
     #[serde(untagged)]
     pub enum Recent {
         /// A multi-root workspace
@@ -115,21 +116,27 @@ pub mod workspaces {
         #[serde(rename_all = "camelCase")]
         Workspace {
             workspace: WorkspaceIdentifier,
+            #[serde(skip_serializing_if = "Option::is_none")]
             label: Option<String>,
+            #[serde(skip_serializing_if = "Option::is_none")]
             remote_authority: Option<String>,
         },
         /// A workspace with a single folder
         #[serde(rename_all = "camelCase")]
         Folder {
             folder_uri: String,
+            #[serde(skip_serializing_if = "Option::is_none")]
             label: Option<String>,
+            #[serde(skip_serializing_if = "Option::is_none")]
             remote_authority: Option<String>,
         },
         /// A single file
         #[serde(rename_all = "camelCase")]
         File {
             file_uri: String,
+            #[serde(skip_serializing_if = "Option::is_none")]
             label: Option<String>,
+            #[serde(skip_serializing_if = "Option::is_none")]
             remote_authority: Option<String>,
         },
     }
@@ -238,13 +245,8 @@ pub mod workspaces {
         // https://github.com/microsoft/vscode/blob/main/src/vs/platform/workspaces/common/workspaces.ts
 
         // Open the DB
-        let db_path = config_dir
-            .join("User")
-            .join("globalStorage")
-            .join("state.vscdb");
-
-        let conn = Connection::open(&db_path)
-            .with_context(|| format!("Could not open database {:?}", &db_path))?;
+        let open_flags = Some(OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX);
+        let conn = open_state_db(config_dir, open_flags)?;
 
         // Retrieve the JSON value of the property
         let res: Value = conn
@@ -255,8 +257,8 @@ pub mod workspaces {
             )
             .with_context(|| {
                 format!(
-                    "Could not retrieve key \"{}\" from \"{:?}\" as JSON",
-                    VSCDB_HISTORY_KEY, &db_path
+                    "Could not retrieve key \"{}\" from state DB as JSON",
+                    VSCDB_HISTORY_KEY
                 )
             })?;
 
@@ -296,6 +298,46 @@ pub mod workspaces {
         })?;
         get_history_entries(&config_dir)
     }
+
+    pub fn store_recently_opened(
+        distribution: &Distribution,
+        entries: &[Recent],
+    ) -> anyhow::Result<()> {
+        let config_dir = distribution.config_dir().ok_or_else(|| {
+            anyhow!(
+                "Could not find configuration directory for \"{:?}\"",
+                distribution
+            )
+        })?;
+
+        // Open DB
+        let open_flags = Some(OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_NO_MUTEX);
+        let conn = open_state_db(&config_dir, open_flags)?;
+
+        // Serialize to JSON
+        let value = json!({
+            "entries": entries,
+        });
+
+        // Update DB
+        conn.execute(
+            "UPDATE ItemTable SET value = (?2) WHERE key = (?1)",
+            params![VSCDB_HISTORY_KEY, value],
+        )
+        .with_context(|| "Could not update state in DB")
+        .map(|_| ())
+    }
+}
+
+fn open_state_db(config_dir: &Path, open_flags: Option<OpenFlags>) -> anyhow::Result<Connection> {
+    let open_flags = open_flags.unwrap_or_default();
+    let db_path = config_dir
+        .join("User")
+        .join("globalStorage")
+        .join("state.vscdb");
+
+    Connection::open_with_flags(&db_path, open_flags)
+        .with_context(|| format!("Could not open database {:?}", &db_path))
 }
 
 /// Converts an URL to its corresponding file path

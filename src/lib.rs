@@ -6,7 +6,7 @@ use anyhow::{anyhow, Context};
 use rofi_mode::{self as rofi, Action, Api, Event, Matcher};
 use vscode::{
     untildify,
-    workspaces::{recently_opened_from_storage, Recent},
+    workspaces::{recently_opened_from_storage, store_recently_opened, Recent},
     Distribution,
 };
 
@@ -92,8 +92,9 @@ impl<'rofi> rofi_mode::Mode<'rofi> for VSCodeRecentMode<'rofi> {
             }
 
             // Delete selected entry
-            Event::DeleteEntry { selected: _ } => {
-                todo!()
+            Event::DeleteEntry { selected } => {
+                self.entries.remove(selected);
+                store_recently_opened(&self.distribution, &self.entries).map(|_| Action::Reload)
             }
 
             // User ran a custom command
