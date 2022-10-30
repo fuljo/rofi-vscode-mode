@@ -3,12 +3,16 @@
 <!-- TODO: badges -->
 
 A very handy Rofi menu to open recent Visual Studio Code workspacess and files.
-Supports [Visual Studio Code](https://code.visualstudio.com), [Code - OSS](https://github.com/microsoft/vscode) and [VSCodium](https://vscodium.com).
+
+![Demonstration of open menu](assets/demo_papirus_icons.png)
 
 This is a sort-of-clone of [rofi-code](https://github.com/Coffelius/rofi-code), with a few differences:
 - it is implemented in Rust rather than Go
 - it implements an ad-hoc mode for Rofi, rather than using its drun interface
 - it shows exactly the items from VSCode's _File->Open Recent_ menu (see [below](#How%20it%20works) for more details)
+
+
+Supports [Visual Studio Code](https://code.visualstudio.com), [Code - OSS](https://github.com/microsoft/vscode) and [VSCodium](https://vscodium.com).
 
 Many thanks to [@Coffelius](https://github.com/Coffelius) for inspiring this project and to [@SabrinaJewson](https://github.com/SabrinaJewson) for providing Rust bindings for Rofi's C plugin interface.
 
@@ -63,6 +67,18 @@ If you want to select it by hand, set `ROFI_VSCODE_DIST` with one of the followi
 | `codeoss`          | Code - OSS         | `code-oss` | `~/.config/Code - OSS/` |
 | `vscodium`         | VSCodium           | `codium`   | `~/.config/VSCodium/`   |
 
+### Icons
+By default icons from Rofi's current icon theme are shown besides the entries. You have three choices:
+- Set `ROFI_VSCODE_ICON_MODE=none` to disable icons
+- Set `ROFI_VSCODE_ICON_MODE=theme` to use the icons from Rofi's current icon theme
+- Set `ROFI_VSCODE_ICON_MODE=nerd` to use icons from a [Nerd Font](https://www.nerdfonts.com/).<br>
+  The font can be chosen by setting `ROFI_VSCODE_ICON_FONT=fontname` (defaults to monospace) and its color by setting
+  `ROFI_VSCODE_ICON_COLOR` to an `#rrggbb` or `#rrggbbaa` value.
+
+A different icon is shown for workspaces, files and folders.
+
+<img src="assets/demo_no_icons.png" width="49%"> <img src="assets/demo_nerd_icons.png" width="49%">
+
 ## How it works
 VSCode stores its state in a local database inside its config directory: `~/.config/Code/User/globalStorage/state.vscdb`.
 
@@ -78,9 +94,8 @@ After choosing a suitable VSCode distribution, the plugin reads these structures
 
 - [x] Support for recent workspaces, files and folders
 - [x] Support for item deletion
-- [ ] Enable icons with an environment variable `ROFI_VSCODE_ICONS`
 - [ ] Command line tool (drun-compatible?)
-- [ ] Configurable icons: from icon theme or nerd font
+- [x] Configurable icons: from icon theme or nerd font
 
 ## Contributing
 

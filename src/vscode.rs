@@ -101,9 +101,9 @@ pub mod workspaces {
         /// It is usually the SHA-256 of [`Self::config_path`] and identifies the storage folder for workspace data.<br>
         /// `$CODE_CONFIG_DIR/User/workspaceStorage/{id}/`
         #[allow(dead_code)]
-        id: String,
+        pub id: String,
         /// Location of the `.code-workspace` file
-        config_path: String,
+        pub config_path: String,
     }
 
     /// A recently opened item
@@ -222,6 +222,54 @@ pub mod workspaces {
                 }
             }
         }
+
+        /// Name of the icon to display from the icon theme
+        ///
+        /// This name can be used to query the icon from the icon theme
+        ///
+        /// See the [Freedesktop documentation](https://specifications.freedesktop.org/icon-naming-spec/latest/ar01s04.html)
+        pub fn icon_name(&self) -> &str {
+            match self {
+                Self::Workspace {
+                    workspace: _,
+                    label: _,
+                    remote_authority: _,
+                } => "visual-studio-code",
+                Self::Folder {
+                    folder_uri: _,
+                    label: _,
+                    remote_authority: _,
+                } => "folder",
+                Self::File {
+                    file_uri: _,
+                    label: _,
+                    remote_authority: _,
+                } => "text-x-generic",
+            }
+        }
+
+        /// Icon glyph from nerd font
+        ///
+        /// See the [Nerd Fonts Cheat Sheet](https://www.nerdfonts.com/cheat-sheet)
+        pub fn nerd_icon(&self) -> &str {
+            match self {
+                Self::Workspace {
+                    workspace: _,
+                    label: _,
+                    remote_authority: _,
+                } => "\u{fb0f}",
+                Self::Folder {
+                    folder_uri: _,
+                    label: _,
+                    remote_authority: _,
+                } => "\u{f74a}",
+                Self::File {
+                    file_uri: _,
+                    label: _,
+                    remote_authority: _,
+                } => "\u{f713}",
+            }
+        }
     }
 
     impl Display for Recent {
@@ -299,6 +347,10 @@ pub mod workspaces {
         get_history_entries(&config_dir)
     }
 
+    /// Store the workspaces into VSCode's state
+    ///
+    /// Performs the reverse operation of [recently_opened_from_storage],
+    /// see its documentation for details.
     pub fn store_recently_opened(
         distribution: &Distribution,
         entries: &[Recent],

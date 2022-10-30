@@ -17,6 +17,7 @@ crate-type = ["cdylib"]
 [dependencies]
 anyhow = "1.0"
 dirs = "4.0"
+pangocairo = "0.15" # should be consistent with the dependency from rofi-mode
 rofi-mode = "0.2"
 rusqlite = { version = "0.28", features = ["serde_json"]}
 serde = { version = "1.0", features = ["derive"] }
