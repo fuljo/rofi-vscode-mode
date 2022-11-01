@@ -3,13 +3,14 @@ name = "rofi-vscode-mode"
 version = "0.1.0"
 authors = ["Alessandro Fulgini <fuljo97@gmail.com>"]
 edition = "2021"
+rust-version = "1.60.0"
 description = "A Rofi mode to open Visual Studio Code workspaces"
-repository = "https://github.com/fuljo/rofi-vscode-mode/"
+repository = "https://github.com/fuljo/rofi-vscode-mode"
 license = "MIT"
 keywords = ["rofi", "mode", "plugin", "vscode"]
 categories = ["command-line-utilities"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+exclude = ["/ci", "assets/", ".*", "install.sh"]
 
 [lib]
 crate-type = ["cdylib"]
