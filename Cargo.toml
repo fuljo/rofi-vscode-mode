@@ -13,10 +13,14 @@ categories = ["command-line-utilities"]
 exclude = ["/ci", "assets/", ".*", "install.sh"]
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["lib", "cdylib"]
+
+[[bin]]
+name = "vscode-recent"
 
 [dependencies]
 anyhow = "1.0"
+clap = { version = "4.0", features = ["derive"]}
 dirs = "4.0"
 pangocairo = "0.15" # should be consistent with the dependency from rofi-mode
 rofi-mode = "0.2"

@@ -202,7 +202,7 @@ where
         .map(|_| Action::Exit)
 }
 
-fn determine_vscode_distribution() -> anyhow::Result<Distribution> {
+pub fn determine_vscode_distribution() -> anyhow::Result<Distribution> {
     if let Ok(val) = env::var(ENV_DIST) {
         Distribution::from_str(&val)
     } else {

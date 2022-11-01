@@ -9,10 +9,11 @@ A very handy Rofi menu to open recent Visual Studio Code workspacess and files.
 This is a sort-of-clone of [rofi-code](https://github.com/Coffelius/rofi-code), with a few differences:
 - it is implemented in Rust rather than Go
 - it implements an ad-hoc mode for Rofi, rather than using its drun interface
-- it shows exactly the items from VSCode's _File->Open Recent_ menu (see [below](#How%20it%20works) for more details)
+- it shows exactly the items from VSCode's _File->Open Recent_ menu (see [below](#how-it-works) for more details)
 
+A standalone tool called `vscode-recent` is also provided, to be paired with [dmenu](https://tools.suckless.org/dmenu/), [fzf](https://github.com/junegunn/fz) or similar.
 
-Supports [Visual Studio Code](https://code.visualstudio.com), [Code - OSS](https://github.com/microsoft/vscode) and [VSCodium](https://vscodium.com).
+Supports [Visual Studio Code](https://code.visualstudio.com), [Code - OSS](https://github.com/microsoft/vscode) and [VSCodium](https://vscodium.com). I also provide a standalone executable
 
 Many thanks to [@Coffelius](https://github.com/Coffelius) for inspiring this project and to [@SabrinaJewson](https://github.com/SabrinaJewson) for providing Rust bindings for Rofi's C plugin interface.
 
@@ -23,9 +24,14 @@ Then run
 ```sh
 ./install.sh
 ```
-which will build the project and copy the produced library to Rofi's plugin directory.
+The installer will:
+- build the project
+- copy the produced library to Rofi's plugin directory
+- copy the standalone `vscode-recent` executable to `~/.local/bin/`
 
 ## Usage
+
+### As a Rofi mode
 This library introduces a new mode named `vscode-recent`.
 You can run it standalone with the command
 ```sh
@@ -48,6 +54,15 @@ When an item is selected, press:
 - <kbd>Shift</kbd>+<kbd>Del</kbd> to permanently delete it from the list
 
 :warning: Item deletion works by updating the recent items list in VSCode's state database. Do it at your own risk. Please use this feature when VSCode is closed, otherwise your changes may be overwritten.
+
+### As a standalone executable
+If you prefer something other than Rofi to select your entry, we also provide the `vscode-recent` command that simply writes out the paths line by line. You can then pair it with your favourite selection tool, like [dmenu](https://tools.suckless.org/dmenu/) or [fzf](https://github.com/junegunn/fz).
+
+Please remember that by default the home directory is contracted to a `~`, so you will need to invoke a shell to expand it. Use the `-F` flag to show full paths instead. Use `--help` to show all the options.
+
+```sh
+sh -c "code $(vscode-recent | dmenu)"
+```
 
 ## Configuration
 Various aspects of this plugin can be configured with environment variables.
@@ -94,8 +109,9 @@ After choosing a suitable VSCode distribution, the plugin reads these structures
 
 - [x] Support for recent workspaces, files and folders
 - [x] Support for item deletion
-- [ ] Command line tool (drun-compatible?)
+- [x] Command line tool
 - [x] Configurable icons: from icon theme or nerd font
+- [ ] Tests
 
 ## Contributing
 
