@@ -12,23 +12,48 @@ This is a sort-of-clone of [rofi-code](https://github.com/Coffelius/rofi-code), 
 - it implements an ad-hoc mode for Rofi, rather than using its drun interface
 - it shows exactly the items from VSCode's _File->Open Recent_ menu (see [below](#how-it-works) for more details)
 
-A standalone tool called `vscode-recent` is also provided, to be paired with [dmenu](https://tools.suckless.org/dmenu/), [fzf](https://github.com/junegunn/fz) or similar.
+A standalone command line tool called `vscode-recent` is also provided, to be paired with [dmenu](https://tools.suckless.org/dmenu/), [fzf](https://github.com/junegunn/fz) or similar.
 
 Supports [Visual Studio Code](https://code.visualstudio.com), [Code - OSS](https://github.com/microsoft/vscode) and [VSCodium](https://vscodium.com). I also provide a standalone executable
 
 Many thanks to [@Coffelius](https://github.com/Coffelius) for inspiring this project and to [@SabrinaJewson](https://github.com/SabrinaJewson) for providing Rust bindings for Rofi's C plugin interface.
 
-## Build and install
+## Install
 
-First make sure to install [Rofi](https://github.com/davatorium/rofi) 1.7 and a [Rust](https://www.rust-lang.org/tools/install) toolchain.
-Then run
+### Build from source
+You can choose to build and install only the `vscode-recent` tool, only the plugin or both.
+
+First clone this repository
 ```sh
-./install.sh
+git clone https://github.com/fuljo/rofi-vscode-mode
 ```
-The installer will:
-- build the project
-- copy the produced library to Rofi's plugin directory
-- copy the standalone `vscode-recent` executable to `~/.local/bin/`
+
+Then get [Rust](https://www.rust-lang.org/tools/install) as you prefer.
+
+Then install the needed dependencies
+```sh
+# Ubuntu / Debian
+apt-get install \
+  build-essential pkg-config libsqlite3-dev \
+  rofi-dev libpango1.0-dev  # only needed for the rofi plugin
+
+# Arch
+pacman -S \
+  make pkg-config sqlite \
+  rofi # only needed for the rofi plugin
+```
+
+Then run `make` according to your choice:
+```sh
+# Binary and plugin
+make install
+
+# Binary only
+make install.bin
+
+# Plugin only
+make install.plugin
+```
 
 ## Usage
 
@@ -56,12 +81,10 @@ When an item is selected, press:
 
 :warning: Item deletion works by updating the recent items list in VSCode's state database. Do it at your own risk. Please use this feature when VSCode is closed, otherwise your changes may be overwritten.
 
-### As a standalone executable
+### As a command line tool
 If you prefer something other than Rofi to select your entry, we also provide the `vscode-recent` command that simply writes out the paths line by line. You can then pair it with your favourite selection tool, like [dmenu](https://tools.suckless.org/dmenu/) or [fzf](https://github.com/junegunn/fz).
 
-Please remember that by default the home directory is contracted to a![example workflow](https://github.com/github/docs/actions/workflows/main.yml/badge.svg)
-![example workflow](https://github.com/github/docs/actions/workflows/main.yml/badge.svg)
- `~`, so you will need to invoke a shell to expand it. Use the `-F` flag to show full paths instead. Use `--help` to show all the options.
+Please remember that by default the home directory is contracted to a `~`, so you will need to invoke a shell to expand it. Use the `-F` flag to show full paths instead. Use `--help` to show all the options.
 
 ```sh
 sh -c "code $(vscode-recent | dmenu)"
