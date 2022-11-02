@@ -7,6 +7,9 @@ on:
   push:
     branches:
       - main
+env:
+  BINNAME: vscode-recent
+  LIBNAME: librofi_vscode_mode.so
 
 jobs:
   test:
@@ -21,19 +24,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install common dependencies
-        run: ci/install-common-deps-ubuntu
-
-      - name: Install rofi dependencies
-        run: ci/install-rofi-deps-ubuntu
-
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
 
-      - name: Build all crates
-        # The --workspace refers to all crates in the project
+      - name: Install common dependencies
+        run: ci/install-common-deps-ubuntu
+
+      - name: Build just the binary
+        run: cargo build --verbose --bin ${{ env.BINNAME }} --no-default-features
+
+      - name: Install rofi dependencies
+        run: ci/install-rofi-deps-ubuntu
+
+      - name: Build everything
         run: cargo build --verbose --workspace
 
       - name: Run tests

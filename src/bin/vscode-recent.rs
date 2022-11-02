@@ -7,7 +7,7 @@
 
 use clap::Parser;
 use rofi_vscode_mode::{
-    determine_vscode_distribution,
+    utils::determine_vscode_distribution,
     vscode::{tildify, workspaces::recently_opened_from_storage, Distribution},
 };
 

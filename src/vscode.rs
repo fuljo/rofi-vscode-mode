@@ -1,3 +1,5 @@
+//! Visual Studio Code utilities
+
 use std::{
     borrow::Cow,
     path::{Path, PathBuf},
