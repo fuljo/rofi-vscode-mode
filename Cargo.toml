@@ -10,7 +10,7 @@ license = "MIT"
 keywords = ["rofi", "mode", "plugin", "vscode"]
 categories = ["command-line-utilities"]
 
-exclude = ["/ci", "assets/", ".*", "install.sh"]
+exclude = ["/ci", "assets/", ".*", "install.sh", "ci"]
 
 [lib]
 crate-type = ["lib", "cdylib"]

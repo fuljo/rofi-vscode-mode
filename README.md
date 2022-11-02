@@ -1,6 +1,7 @@
 # VSCode mode for Rofi
 
-<!-- TODO: badges -->
+[![CI Workflow](https://github.com/fuljo/rofi-vscode-mode/actions/workflows/ci.yml/badge.svg)](https://github.com/fuljo/rofi-vscode-mode/actions)
+
 
 A very handy Rofi menu to open recent Visual Studio Code workspacess and files.
 
@@ -58,7 +59,9 @@ When an item is selected, press:
 ### As a standalone executable
 If you prefer something other than Rofi to select your entry, we also provide the `vscode-recent` command that simply writes out the paths line by line. You can then pair it with your favourite selection tool, like [dmenu](https://tools.suckless.org/dmenu/) or [fzf](https://github.com/junegunn/fz).
 
-Please remember that by default the home directory is contracted to a `~`, so you will need to invoke a shell to expand it. Use the `-F` flag to show full paths instead. Use `--help` to show all the options.
+Please remember that by default the home directory is contracted to a![example workflow](https://github.com/github/docs/actions/workflows/main.yml/badge.svg)
+![example workflow](https://github.com/github/docs/actions/workflows/main.yml/badge.svg)
+ `~`, so you will need to invoke a shell to expand it. Use the `-F` flag to show full paths instead. Use `--help` to show all the options.
 
 ```sh
 sh -c "code $(vscode-recent | dmenu)"

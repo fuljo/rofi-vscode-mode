@@ -1,0 +1,77 @@
+# Based on: https://github.com/BurntSushi/ripgrep/blob/master/.github/workflows/ci.yml
+name: Continuous Integration
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest]
+        rust: [stable]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install common dependencies
+        run: ci/install-common-deps-ubuntu
+
+      - name: Install rofi dependencies
+        run: ci/install-rofi-deps-ubuntu
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+
+      - name: Build all crates
+        # The --workspace refers to all crates in the project
+        run: cargo build --verbose --workspace
+
+      - name: Run tests
+        run: cargo test --verbose --workspace
+
+  rustfmt:
+    name: rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: rustfmt
+      - name: Check formatting
+        run: cargo fmt --all --check
+
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Install common dependencies
+        run: ci/install-common-deps-ubuntu
+
+      - name: Install rofi dependencies
+        run: ci/install-rofi-deps-ubuntu
+
+      - name: Check documentation
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --no-deps --document-private-items --workspace

@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# A very minimal environment might not contain sudo
+if ! command -V sudo; then
+  apt-get update
+  apt-get install -y --no-install-recommends sudo
+fi
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends \
+  rofi-dev libpango1.0-dev
