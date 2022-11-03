@@ -11,28 +11,31 @@ use rusqlite::{Connection, OpenFlags};
 use url::Url;
 use which::which;
 
-/// One of the possible VSCode distributions
+/// One of the possible VSCode flavors
 #[derive(PartialEq, Debug, Clone, Copy)]
-pub enum Distribution {
+pub enum Flavor {
     Code,
+    CodeInsiders,
     CodeOSS,
     VSCodium,
 }
 
-impl Distribution {
-    //// The command to run the distribution
+impl Flavor {
+    //// The command to run the flavor
     pub fn cmd(&self) -> &str {
         match self {
             Self::Code => "code",
+            Self::CodeInsiders => "code-insiders",
             Self::CodeOSS => "code-oss", // also provides `code`
             Self::VSCodium => "codium",  // also provides `vscodium`
         }
     }
 
-    /// Path to the configuration directory of the distribution, if it exists
+    /// Path to the configuration directory of the flavor, if it exists
     pub fn config_dir(&self) -> Option<PathBuf> {
         let subdir = match self {
             Self::Code => "Code",
+            Self::CodeInsiders => "Code - Insiders",
             Self::CodeOSS => "Code - OSS",
             Self::VSCodium => "VSCodium",
         };
@@ -44,28 +47,34 @@ impl Distribution {
             .filter(|p| p.exists())
     }
 
-    /// Tries to detect the preferred distribution
+    /// Tries to detect the preferred flavor
     ///
-    /// It returns the first distribution for which it can find both:
+    /// It returns the first flavor for which it can find both:
     /// - an executable in `$PATH`
     /// - a configuration directory
     pub fn detect() -> Option<&'static Self> {
-        let candidates = &[Self::VSCodium, Self::CodeOSS, Self::Code];
+        let candidates = &[
+            Self::VSCodium,
+            Self::CodeOSS,
+            Self::CodeInsiders,
+            Self::Code,
+        ];
         candidates
             .iter()
             .find(|d| which(d.cmd()).ok().and(d.config_dir()).is_some())
     }
 }
 
-impl FromStr for Distribution {
+impl FromStr for Flavor {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_ref() {
             "code" => Ok(Self::Code),
-            "codeoss" => Ok(Self::CodeOSS),
+            "code-insiders" => Ok(Self::CodeInsiders),
+            "code-oss" => Ok(Self::CodeOSS),
             "vscodium" | "codium" => Ok(Self::VSCodium),
-            _ => Err(anyhow!("\"{}\" does not match any VSCode distribution", s)),
+            _ => Err(anyhow!("\"{}\" does not match any VSCode flavor", s)),
         }
     }
 }
@@ -76,7 +85,7 @@ impl FromStr for Distribution {
 /// - [Workspaces History Main Service](https://github.com/microsoft/vscode/blob/main/src/vs/platform/workspaces/electron-main/workspacesHistoryMainService.ts)
 /// - [workspaces common definitions](https://github.com/microsoft/vscode/blob/main/src/vs/platform/workspaces/common/workspaces.ts)
 pub mod workspaces {
-    use super::{open_state_db, path_from_url, tildify, Distribution};
+    use super::{open_state_db, path_from_url, tildify, Flavor};
     use std::{
         borrow::Cow,
         fmt::{self, Display},
@@ -281,7 +290,7 @@ pub mod workspaces {
         }
     }
 
-    /// Get recently opened workspaces, files and folders for specific distribution
+    /// Get recently opened workspaces, files and folders for specific flavor
     ///
     /// # Warning
     /// Workspaces that fail to deserialize to known data structures will be ignored.
@@ -328,7 +337,7 @@ pub mod workspaces {
     /// Get recently opened workspaces, files and folders
     ///
     /// This function will retrieve the items from the _global storage_ of the
-    /// given `distribution`. The items are sorted from the most to the least recent
+    /// given `flavor`. The items are sorted from the most to the least recent
     ///
     /// # Warning
     /// Workspaces that fail to deserialize to known data structures will be ignored.
@@ -337,13 +346,11 @@ pub mod workspaces {
     /// it is unlikely that there are any invalid URIs.
     ///
     /// The entries will be looked up from VSCode's global storage
-    pub fn recently_opened_from_storage(
-        distribution: &Distribution,
-    ) -> anyhow::Result<Vec<Recent>> {
-        let config_dir = distribution.config_dir().ok_or_else(|| {
+    pub fn recently_opened_from_storage(flavor: &Flavor) -> anyhow::Result<Vec<Recent>> {
+        let config_dir = flavor.config_dir().ok_or_else(|| {
             anyhow!(
                 "Could not find configuration directory for \"{:?}\"",
-                distribution
+                flavor
             )
         })?;
         get_history_entries(&config_dir)
@@ -353,14 +360,11 @@ pub mod workspaces {
     ///
     /// Performs the reverse operation of [recently_opened_from_storage],
     /// see its documentation for details.
-    pub fn store_recently_opened(
-        distribution: &Distribution,
-        entries: &[Recent],
-    ) -> anyhow::Result<()> {
-        let config_dir = distribution.config_dir().ok_or_else(|| {
+    pub fn store_recently_opened(flavor: &Flavor, entries: &[Recent]) -> anyhow::Result<()> {
+        let config_dir = flavor.config_dir().ok_or_else(|| {
             anyhow!(
                 "Could not find configuration directory for \"{:?}\"",
-                distribution
+                flavor
             )
         })?;
 

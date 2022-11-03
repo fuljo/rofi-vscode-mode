@@ -2,11 +2,11 @@
 
 use std::{env, ffi::OsStr, process::Command};
 
-use super::utils::determine_vscode_distribution;
+use super::utils::determine_vscode_flavor;
 use super::vscode::{
     untildify,
     workspaces::{recently_opened_from_storage, store_recently_opened, Recent},
-    Distribution,
+    Flavor,
 };
 use anyhow::{anyhow, Context};
 use pangocairo::{self, cairo, pango};
@@ -50,8 +50,8 @@ pub struct VSCodeRecentMode<'rofi> {
     api: Api<'rofi>,
     /// The entries that will be displayed
     entries: Vec<Recent>,
-    /// The selected VSCode distribution
-    distribution: Distribution,
+    /// The selected VSCode flavor
+    flavor: Flavor,
     /// Configuration to render icons
     icon_config: IconConfig,
 }
@@ -63,18 +63,17 @@ impl<'rofi> rofi_mode::Mode<'rofi> for VSCodeRecentMode<'rofi> {
     fn init(mut api: Api<'rofi>) -> Result<Self, ()> {
         // Set name
         api.set_display_name("Open Recent");
-        // Initialize vscode distribution
-        let distribution = determine_vscode_distribution().map_err(|e| eprint!("{:?}", e))?;
+        // Initialize vscode flavor
+        let flavor = determine_vscode_flavor().map_err(|e| eprint!("{:?}", e))?;
         // Initialize the entries
-        let entries =
-            recently_opened_from_storage(&distribution).map_err(|e| eprint!("{:?}", e))?;
+        let entries = recently_opened_from_storage(&flavor).map_err(|e| eprint!("{:?}", e))?;
 
         let icon_config = determine_icon_config().map_err(|e| eprint!("{:?}", e))?;
 
         Ok(VSCodeRecentMode {
             api,
             entries,
-            distribution,
+            flavor,
             icon_config,
         })
     }
@@ -121,7 +120,7 @@ impl<'rofi> rofi_mode::Mode<'rofi> for VSCodeRecentMode<'rofi> {
             // Selected an item
             Event::Ok { alt: _, selected } => self.entries[selected]
                 .path()
-                .and_then(|p| open_path(self.distribution.cmd(), &p)),
+                .and_then(|p| open_path(self.flavor.cmd(), &p)),
 
             // Selected a custom input (not in list)
             Event::CustomInput {
@@ -129,7 +128,7 @@ impl<'rofi> rofi_mode::Mode<'rofi> for VSCodeRecentMode<'rofi> {
                 selected: _,
             } => {
                 let path = untildify(input);
-                open_path(self.distribution.cmd(), &path)
+                open_path(self.flavor.cmd(), &path)
             }
 
             // Autocomplete input from selected entry
@@ -145,7 +144,7 @@ impl<'rofi> rofi_mode::Mode<'rofi> for VSCodeRecentMode<'rofi> {
             // Delete selected entry
             Event::DeleteEntry { selected } => {
                 self.entries.remove(selected);
-                store_recently_opened(&self.distribution, &self.entries).map(|_| Action::Reload)
+                store_recently_opened(&self.flavor, &self.entries).map(|_| Action::Reload)
             }
 
             // User ran a custom command

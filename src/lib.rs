@@ -3,7 +3,7 @@
 //! [rofi::VSCodeRecentMode] provides a [Rofi](https://github.com/davatorium/rofi) mode named `vscode-recent` to open recent items in VSCode.
 //!
 //! This plugin can be configured with environment variables:
-//! - `ROFI_VSCODE_DIST=[code|code-oss|vscodium]` sets the preferred VSCode distribution to be used
+//! - `ROFI_VSCODE_FLAVOR=[code|code-insiders|code-oss|vscodium]` sets the preferred VSCode flavor to be used
 //! - `ROFI_VSCODE_ICON_MODE=[none|theme|nerd]` controls how icons are displayed
 //! - `ROFI_VSCODE_ICON_FONT` controls the font to render the icon glyphs in case the `nerd` option is chosen
 //! - `ROFI_VSCODE_ICON_COLOR` controls the color of the font in case the `nerd` option is chosen

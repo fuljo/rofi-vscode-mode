@@ -12,9 +12,9 @@ This is a sort-of-clone of [rofi-code](https://github.com/Coffelius/rofi-code), 
 - it implements an ad-hoc mode for Rofi, rather than using its drun interface
 - it shows exactly the items from VSCode's _File->Open Recent_ menu (see [below](#how-it-works) for more details)
 
-A standalone command line tool called `vscode-recent` is also provided, to be paired with [dmenu](https://tools.suckless.org/dmenu/), [fzf](https://github.com/junegunn/fz) or similar.
+A standalone command line tool called `vscode-recent` is also provided, to be paired with [dmenu](https://tools.suckless.org/dmenu/), [fzf](https://github.com/junegunn/fzf) or similar.
 
-Supports [Visual Studio Code](https://code.visualstudio.com), [Code - OSS](https://github.com/microsoft/vscode) and [VSCodium](https://vscodium.com). I also provide a standalone executable
+Supports [Visual Studio Code](https://code.visualstudio.com), [Visual Studio Code Insiders](https://code.visualstudio.com/insiders) [Code - OSS](https://github.com/microsoft/vscode) and [VSCodium](https://vscodium.com).
 
 Many thanks to [@Coffelius](https://github.com/Coffelius) for inspiring this project and to [@SabrinaJewson](https://github.com/SabrinaJewson) for providing Rust bindings for Rofi's C plugin interface.
 
@@ -96,17 +96,18 @@ If you are using keyboard shortcuts to launch Rofi, make sure that these variabl
 
 Configuration of the theme and everything else is left to Rofi itself.
 
-### VSCode distribution
-Multiple VSCode distributions exist for Linux, see the [Arch Wiki](https://wiki.archlinux.org/title/Visual_Studio_Code) for details.
+### VSCode flavor
+Multiple VSCode flavors exist for Linux, see the [Arch Wiki](https://wiki.archlinux.org/title/Visual_Studio_Code) for details.
 
-By default this plugin will try to detect a distribution for which both a command in `$PATH` and a configuration directory exist.
-If you want to select it by hand, set `ROFI_VSCODE_DIST` with one of the following values (case insensitive):
+By default this plugin will try to detect a flavor for which both a command in `$PATH` and a configuration directory exist.
+If you want to select it by hand, set `ROFI_VSCODE_FLAVOR` with one of the following values (case insensitive):
 
-| `ROFI_VSCODE_DIST` | Distribution       | Command    | Configuration directory |
-| ------------------ | ------------------ | ---------- | ----------------------- |
-| `code`             | Visual Studio Code | `code`     | `~/.config/Code/`       |
-| `codeoss`          | Code - OSS         | `code-oss` | `~/.config/Code - OSS/` |
-| `vscodium`         | VSCodium           | `codium`   | `~/.config/VSCodium/`   |
+| `ROFI_VSCODE_FLAVOR` | Flavor                      | Command         | Configuration directory      |
+| -------------------- | --------------------------- | --------------- | ---------------------------- |
+| `code`               | Visual Studio Code          | `code`          | `~/.config/Code/`            |
+| `code-insiders`      | Visual Studio Code Insiders | `code-insiders` | `~/.config/Code - Insiders/` |
+| `code-oss`           | Code - OSS                  | `code-oss`      | `~/.config/Code - OSS/`      |
+| `vscodium`           | VSCodium                    | `codium`        | `~/.config/VSCodium/`        |
 
 ### Icons
 By default icons from Rofi's current icon theme are shown besides the entries. You have three choices:
@@ -119,25 +120,6 @@ By default icons from Rofi's current icon theme are shown besides the entries. Y
 A different icon is shown for workspaces, files and folders.
 
 <img src="assets/demo_no_icons.png" width="49%"> <img src="assets/demo_nerd_icons.png" width="49%">
-
-## How it works
-VSCode stores its state in a local database inside its config directory: `~/.config/Code/User/globalStorage/state.vscdb`.
-
-It contains a single table (ItemTable), where each row is a JSON key-value pair. Key `history.recentlyOpenedPathsList` contains a list of recently opened entries. By taking a look at the [source code](https://github.com/microsoft/vscode/blob/f56598fc18381732d999390153da6b2f3f3985e3/src/vs/platform/workspaces/common/workspaces.ts#L46) we can see that there are three types of entries:
-- `IRecentWorkspace` &ndash; [Multi-root workspaces](https://code.visualstudio.com/docs/editor/workspaces#_multiroot-workspaces) with an associaced `.code-workspace` file,
-- `IRecentFolder` &ndash; [Single-folder workspaces](https://code.visualstudio.com/docs/editor/workspaces#_singlefolder-workspaces)
-- `IRecentFile`: &ndash; single files.
-
-After choosing a suitable VSCode distribution, the plugin reads these structures from the database and turns them into entries on the Rofi menu.
-
-
-## Roadmap
-
-- [x] Support for recent workspaces, files and folders
-- [x] Support for item deletion
-- [x] Command line tool
-- [x] Configurable icons: from icon theme or nerd font
-- [ ] Tests
 
 ## Contributing
 
