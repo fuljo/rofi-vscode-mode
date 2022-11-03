@@ -5,40 +5,78 @@
 //!
 //! For more details please see the README in the repository.
 
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use rofi_vscode_mode::{
     utils::determine_vscode_flavor,
-    vscode::{tildify, workspaces::recently_opened_from_storage, Flavor},
+    vscode::{
+        workspaces::{recently_opened_from_storage, Recent},
+        Flavor,
+    },
 };
+
+/// How each item should be shown
+#[derive(Debug, Clone, Copy, ValueEnum)]
+pub enum OutputFormat {
+    /// Label (if provided), otherise tildified path
+    ///
+    /// Remote items won't be shown
+    Label,
+    /// Absolute path
+    ///
+    /// Remote items won't be shown
+    AbsolutePath,
+    /// URI
+    ///
+    /// Remote items will be shown
+    Uri,
+}
+
+impl Default for OutputFormat {
+    fn default() -> Self {
+        Self::Label
+    }
+}
 
 /// Print paths of recent Visual Studio Code workspaces and files
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
 struct Args {
     /// Visual Studio Code flavor (code, code-insiders, code-oss, vscodium)
-    #[arg(short, long)]
+    #[arg(short = 'c', long)]
     flavor: Option<Flavor>,
 
-    /// Show full paths, without contracting the home directory
-    #[arg(short = 'F', long, default_value_t = false)]
-    full_paths: bool,
+    /// Output format
+    #[arg(short = 'F', long, value_enum, default_value_t = OutputFormat::default())]
+    output_format: OutputFormat,
+}
+
+fn format_entry(entry: &Recent, output_format: &OutputFormat) -> anyhow::Result<String> {
+    match output_format {
+        OutputFormat::Label => entry.label().map(|s| s.to_string()),
+        OutputFormat::AbsolutePath => entry.path().map(|p| p.to_string_lossy().to_string()),
+        OutputFormat::Uri => Ok(entry.uri().to_string()),
+    }
 }
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
+    // Determine the flavor
     let flavor = match args.flavor {
         Some(flavor) => flavor,             // use provided
         None => determine_vscode_flavor()?, // fallback to ENV variable or detect
     };
 
-    let entries = recently_opened_from_storage(&flavor)?;
+    // Include remote items? Only if we are able to open them from command line with a URI
+    let include_remote = match args.output_format {
+        OutputFormat::Uri => true,
+        OutputFormat::Label | OutputFormat::AbsolutePath => false,
+    };
+
+    // Query and print the entries
+    let entries = recently_opened_from_storage(&flavor, include_remote)?;
     for entry in entries {
-        let s = entry.path().map(|p| match args.full_paths {
-            true => p.to_string_lossy().to_string(),
-            false => tildify(&p),
-        });
-        if let Ok(s) = s {
+        if let Ok(s) = format_entry(&entry, &args.output_format) {
             println!("{}", s)
         }
     }

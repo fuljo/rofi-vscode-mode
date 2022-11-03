@@ -2,7 +2,9 @@
 
 use std::{
     borrow::Cow,
+    ffi::OsStr,
     path::{Path, PathBuf},
+    process::Command,
     str::FromStr,
 };
 
@@ -10,6 +12,11 @@ use anyhow::{anyhow, Context, Result};
 use rusqlite::{Connection, OpenFlags};
 use url::Url;
 use which::which;
+
+use self::workspaces::Recent;
+
+const SCHEME_FILE: &str = "file";
+const SCHEME_REMOTE: &str = "vscode-remote";
 
 /// One of the possible VSCode flavors
 #[derive(PartialEq, Debug, Clone, Copy)]
@@ -63,6 +70,59 @@ impl Flavor {
             .iter()
             .find(|d| which(d.cmd()).ok().and(d.config_dir()).is_some())
     }
+
+    /// Opens a recent item
+    ///
+    /// It will execute a command to open the given item
+    ///
+    /// # Errors
+    /// Opening the item may fail if [self.cmd()] is not found in `PATH`, if the URI of the recent item is invalid or not supported.
+    /// Currently, we support the `file://` and `vscode-remote://` schemes.
+    pub fn open_recent(&self, recent: &Recent) -> anyhow::Result<()> {
+        let mut cmd = Command::new(self.cmd());
+
+        match recent {
+            Recent::Workspace {
+                workspace,
+                label: _,
+                remote_authority,
+            } => {
+                if let Some(remote) = remote_authority {
+                    cmd.arg("--remote").arg(remote);
+                }
+                cmd.arg(&workspace.config_path);
+            }
+            Recent::Folder {
+                folder_uri,
+                label: _,
+                remote_authority: _,
+            } => {
+                cmd.arg("--folder-uri").arg(folder_uri);
+            }
+            Recent::File {
+                file_uri,
+                label: _,
+                remote_authority: _,
+            } => {
+                cmd.arg("--file-uri").arg(file_uri);
+            }
+        }
+        cmd.output()
+            .map(|_| ())
+            .with_context(|| format!("Could not open entry with {}", self.cmd()))
+    }
+
+    /// Opens the given path
+    ///
+    /// # Errors
+    /// Opening the item may fail if [self.cmd()] is not found in `PATH` or if the command fails for some other reason.
+    pub fn open_local_path<S: AsRef<OsStr>>(&self, path: S) -> Result<()> {
+        Command::new(self.cmd())
+            .arg(path)
+            .output()
+            .map(|_| ())
+            .with_context(|| "Could not execute VSCode")
+    }
 }
 
 impl FromStr for Flavor {
@@ -85,7 +145,7 @@ impl FromStr for Flavor {
 /// - [Workspaces History Main Service](https://github.com/microsoft/vscode/blob/main/src/vs/platform/workspaces/electron-main/workspacesHistoryMainService.ts)
 /// - [workspaces common definitions](https://github.com/microsoft/vscode/blob/main/src/vs/platform/workspaces/common/workspaces.ts)
 pub mod workspaces {
-    use super::{open_state_db, path_from_url, tildify, Flavor};
+    use super::{open_state_db, path_from_url, tildify, Flavor, SCHEME_REMOTE};
     use std::{
         borrow::Cow,
         fmt::{self, Display},
@@ -153,6 +213,31 @@ pub mod workspaces {
     }
 
     impl Recent {
+        pub fn uri(&self) -> &str {
+            match self {
+                Recent::Workspace {
+                    workspace,
+                    label: _,
+                    remote_authority: _,
+                } => &workspace.config_path,
+                Recent::Folder {
+                    folder_uri,
+                    label: _,
+                    remote_authority: _,
+                } => folder_uri,
+                Recent::File {
+                    file_uri,
+                    label: _,
+                    remote_authority: _,
+                } => file_uri,
+            }
+        }
+
+        /// Tells whether the item is local or remote
+        pub fn is_remote(&self) -> bool {
+            return self.uri().starts_with(&format!("{}://", SCHEME_REMOTE));
+        }
+
         /// Returns the file path that can be used to open this recent item
         ///
         /// The function should return a path `P` such that running
@@ -292,6 +377,9 @@ pub mod workspaces {
 
     /// Get recently opened workspaces, files and folders for specific flavor
     ///
+    /// If the `include_remote = false`, recent items for which [Recent::is_remote()] holds will be discarded.
+    /// This is useful if you need to open the items by path.
+    ///
     /// # Warning
     /// Workspaces that fail to deserialize to known data structures will be ignored.
     /// Workspaces that have invalid URIs are still deserialized.
@@ -299,7 +387,7 @@ pub mod workspaces {
     /// it is unlikely that there are any invalid URIs.
     ///
     /// The entries will be looked up from VSCode's global storage inside the given `config_dir` configuration directory
-    fn get_history_entries(config_dir: &Path) -> anyhow::Result<Vec<Recent>> {
+    fn get_history_entries(config_dir: &Path, include_remote: bool) -> anyhow::Result<Vec<Recent>> {
         // Reference from `restoreRecentlyOpened` in
         // https://github.com/microsoft/vscode/blob/main/src/vs/platform/workspaces/common/workspaces.ts
 
@@ -326,9 +414,14 @@ pub mod workspaces {
             .as_array()
             .ok_or_else(|| anyhow!("History object's \"entries\" attribute is not an array"))?;
 
+        let filter: fn(&Recent) -> bool = match include_remote {
+            true => |_| true,
+            false => |e| !e.is_remote(),
+        };
         let entries = entries
             .iter()
             .filter_map(|e| -> Option<Recent> { serde_json::from_value(e.to_owned()).ok() })
+            .filter(filter)
             .collect();
 
         Ok(entries)
@@ -339,6 +432,9 @@ pub mod workspaces {
     /// This function will retrieve the items from the _global storage_ of the
     /// given `flavor`. The items are sorted from the most to the least recent
     ///
+    /// If the `include_remote = false`, recent items for which [Recent::is_remote()] holds will be discarded.
+    /// This is useful if you need to open the items by path.
+    ///
     /// # Warning
     /// Workspaces that fail to deserialize to known data structures will be ignored.
     /// Workspaces that have invalid URIs are still deserialized.
@@ -346,14 +442,17 @@ pub mod workspaces {
     /// it is unlikely that there are any invalid URIs.
     ///
     /// The entries will be looked up from VSCode's global storage
-    pub fn recently_opened_from_storage(flavor: &Flavor) -> anyhow::Result<Vec<Recent>> {
+    pub fn recently_opened_from_storage(
+        flavor: &Flavor,
+        include_remote: bool,
+    ) -> anyhow::Result<Vec<Recent>> {
         let config_dir = flavor.config_dir().ok_or_else(|| {
             anyhow!(
                 "Could not find configuration directory for \"{:?}\"",
                 flavor
             )
         })?;
-        get_history_entries(&config_dir)
+        get_history_entries(&config_dir, include_remote)
     }
 
     /// Store the workspaces into VSCode's state
@@ -405,7 +504,7 @@ fn open_state_db(config_dir: &Path, open_flags: Option<OpenFlags>) -> anyhow::Re
 fn path_from_url(input: &str) -> Result<PathBuf> {
     let url = Url::parse(input).with_context(|| format!("Cannot parse URL {}", input))?;
     match url.scheme() {
-        "file" => url
+        SCHEME_FILE => url
             .to_file_path()
             .map_err(|_| anyhow!("Invalid URL file path {}", url)),
         _ => Err(anyhow!("Unsupported URL scheme {}", url.scheme())),

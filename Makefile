@@ -40,6 +40,9 @@ install: all
 	test -w $(DESTDIR)$(pluginsdir) \
 		&& install $(CARGO_RELEASE_DIR)/$(LIBNAME) $(DESTDIR)$(pluginsdir) \
 		|| sudo install $(CARGO_RELEASE_DIR)/$(LIBNAME) $(DESTDIR)$(pluginsdir)
+	test -w $(DESTDIR)$(bindir) \
+		&& install $(CARGO_RELEASE_DIR)/$(BINNAME) $(DESTDIR)$(bindir) \
+		|| sudo install $(CARGO_RELEASE_DIR)/$(BINNAME) $(DESTDIR)$(bindir)
 
 # Just install the plugin
 install.plugin: $(CARGO_RELEASE_DIR)/$(LIBNAME)

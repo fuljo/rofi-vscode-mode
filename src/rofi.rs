@@ -1,6 +1,6 @@
 //! Rofi modes and related utilities
 
-use std::{env, ffi::OsStr, process::Command};
+use std::env;
 
 use super::utils::determine_vscode_flavor;
 use super::vscode::{
@@ -8,7 +8,7 @@ use super::vscode::{
     workspaces::{recently_opened_from_storage, store_recently_opened, Recent},
     Flavor,
 };
-use anyhow::{anyhow, Context};
+use anyhow::anyhow;
 use pangocairo::{self, cairo, pango};
 use rofi_mode::{self as rofi, Action, Api, Event, Matcher};
 
@@ -66,7 +66,8 @@ impl<'rofi> rofi_mode::Mode<'rofi> for VSCodeRecentMode<'rofi> {
         // Initialize vscode flavor
         let flavor = determine_vscode_flavor().map_err(|e| eprint!("{:?}", e))?;
         // Initialize the entries
-        let entries = recently_opened_from_storage(&flavor).map_err(|e| eprint!("{:?}", e))?;
+        let entries =
+            recently_opened_from_storage(&flavor, true).map_err(|e| eprint!("{:?}", e))?;
 
         let icon_config = determine_icon_config().map_err(|e| eprint!("{:?}", e))?;
 
@@ -118,17 +119,17 @@ impl<'rofi> rofi_mode::Mode<'rofi> for VSCodeRecentMode<'rofi> {
             Event::Cancel { selected: _ } => Ok(Action::Exit),
 
             // Selected an item
-            Event::Ok { alt: _, selected } => self.entries[selected]
-                .path()
-                .and_then(|p| open_path(self.flavor.cmd(), &p)),
-
+            Event::Ok { alt: _, selected } => self
+                .flavor
+                .open_recent(&self.entries[selected])
+                .map(|_| Action::Exit),
             // Selected a custom input (not in list)
             Event::CustomInput {
                 alt: _,
                 selected: _,
             } => {
                 let path = untildify(input);
-                open_path(self.flavor.cmd(), &path)
+                self.flavor.open_local_path(path).map(|_| Action::Exit)
             }
 
             // Autocomplete input from selected entry
@@ -170,18 +171,6 @@ impl<'rofi> rofi_mode::Mode<'rofi> for VSCodeRecentMode<'rofi> {
             Err(_) => false,
         }
     }
-}
-
-fn open_path<S, T>(cmd: S, path: T) -> anyhow::Result<Action>
-where
-    S: AsRef<OsStr>,
-    T: AsRef<OsStr>,
-{
-    Command::new(cmd)
-        .arg(path)
-        .output()
-        .with_context(|| "Could not execute VSCode")
-        .map(|_| Action::Exit)
 }
 
 fn determine_icon_config() -> anyhow::Result<IconConfig> {

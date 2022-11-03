@@ -3,20 +3,22 @@
 [![CI Workflow](https://github.com/fuljo/rofi-vscode-mode/actions/workflows/ci.yml/badge.svg)](https://github.com/fuljo/rofi-vscode-mode/actions)
 
 
-A very handy Rofi menu to open recent Visual Studio Code workspacess and files.
+A very handy Rofi menu to open recent Visual Studio Code workspacess and files, written in Rust.
 
 ![Demonstration of open menu](assets/demo_papirus_icons.png)
 
-This is a sort-of-clone of [rofi-code](https://github.com/Coffelius/rofi-code), with a few differences:
-- it is implemented in Rust rather than Go
-- it implements an ad-hoc mode for Rofi, rather than using its drun interface
-- it shows exactly the items from VSCode's _File->Open Recent_ menu (see [below](#how-it-works) for more details)
+Main features:
+- A custom-implemented Rofi mode (a.k.a. plugin) named `vscode-recent`, to open recent workspaces and files.
+- The `vscode-recent` command line tool to print paths of recent workspaces and files to stdout. Pair it with a selection tool like [dmenu](https://tools.suckless.org/dmenu/), [fzf](https://github.com/junegunn/fzf) or similar.
+- Entries are taken from VSCode's _File->Open Recent_ menu.
+- Delete entries from recently opened (also affects VSCode).
+- Support for [remote](https://code.visualstudio.com/docs/remote/remote-overview) workspaces, files and folders.
+- Support for different flavors: [Visual Studio Code](https://code.visualstudio.com), [Visual Studio Code Insiders](https://code.visualstudio.com/insiders), [Code - OSS](https://github.com/microsoft/vscode) and [VSCodium](https://vscodium.com).
 
-A standalone command line tool called `vscode-recent` is also provided, to be paired with [dmenu](https://tools.suckless.org/dmenu/), [fzf](https://github.com/junegunn/fzf) or similar.
+This project was largely inspired by [rofi-code](https://github.com/Coffelius).
+Many thanks to [@Coffelius](https://github.com/Coffelius) for writing it, and to [@SabrinaJewson](https://github.com/SabrinaJewson) for providing Rust bindings to Rofi's C plugin interface.
 
-Supports [Visual Studio Code](https://code.visualstudio.com), [Visual Studio Code Insiders](https://code.visualstudio.com/insiders) [Code - OSS](https://github.com/microsoft/vscode) and [VSCodium](https://vscodium.com).
-
-Many thanks to [@Coffelius](https://github.com/Coffelius) for inspiring this project and to [@SabrinaJewson](https://github.com/SabrinaJewson) for providing Rust bindings for Rofi's C plugin interface.
+If you are curious, I wrote a short [wiki article](https://github.com/fuljo/rofi-vscode-mode/wiki/How-it-works) explaining how this tool gets the recent items and opens them.
 
 ## Install
 
@@ -84,11 +86,17 @@ When an item is selected, press:
 ### As a command line tool
 If you prefer something other than Rofi to select your entry, we also provide the `vscode-recent` command that simply writes out the paths line by line. You can then pair it with your favourite selection tool, like [dmenu](https://tools.suckless.org/dmenu/) or [fzf](https://github.com/junegunn/fz).
 
-Please remember that by default the home directory is contracted to a `~`, so you will need to invoke a shell to expand it. Use the `-F` flag to show full paths instead. Use `--help` to show all the options.
+You can use the `-c` option to set the preferred flavor and the `-F` option to set the desired ouput format:
+- `label` (default) will show the "tildified" path, which needs to be expanded. Remote entries are not shown.
+  ```sh
+  sh -c "code $(vscode-recent | dmenu)"
+  ```
+- `absolute-path` will show the full path. Remote entries are not shown.
+  ```sh
+  code $(vscode-recent | dmenu)
+  ```
+- `uri` will show the locl or remote URI, read [this](https://code.visualstudio.com/docs/remote/troubleshooting#_ssh-tips) for hints on how to open it. Remote entries are shown.
 
-```sh
-sh -c "code $(vscode-recent | dmenu)"
-```
 
 ## Configuration
 Various aspects of this plugin can be configured with environment variables.
