@@ -93,7 +93,7 @@ You can use the `-c` option to set the preferred flavor and the `-F` option to s
   ```
 - `absolute-path` will show the full path. Remote entries are not shown.
   ```sh
-  code $(vscode-recent | dmenu)
+  code $(vscode-recent -F absolute-path | dmenu)
   ```
 - `uri` will show the locl or remote URI, read [this](https://code.visualstudio.com/docs/remote/troubleshooting#_ssh-tips) for hints on how to open it. Remote entries are shown.
 

@@ -53,8 +53,8 @@ struct Args {
 fn format_entry(entry: &Recent, output_format: &OutputFormat) -> anyhow::Result<String> {
     match output_format {
         OutputFormat::Label => entry.label().map(|s| s.to_string()),
-        OutputFormat::AbsolutePath => entry.path().map(|p| p.to_string_lossy().to_string()),
-        OutputFormat::Uri => Ok(entry.uri().to_string()),
+        OutputFormat::AbsolutePath => entry.file_path().map(|p| p.to_string_lossy().to_string()),
+        OutputFormat::Uri => Ok(entry.url().to_string()),
     }
 }
 

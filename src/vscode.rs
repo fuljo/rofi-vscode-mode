@@ -10,7 +10,6 @@ use std::{
 
 use anyhow::{anyhow, Context, Result};
 use rusqlite::{Connection, OpenFlags};
-use url::Url;
 use which::which;
 
 use self::workspaces::Recent;
@@ -76,35 +75,33 @@ impl Flavor {
     /// It will execute a command to open the given item
     ///
     /// # Errors
-    /// Opening the item may fail if [self.cmd()] is not found in `PATH`, if the URI of the recent item is invalid or not supported.
+    /// Opening the item may fail if [self.cmd()] is not found in `PATH`.
     /// Currently, we support the `file://` and `vscode-remote://` schemes.
     pub fn open_recent(&self, recent: &Recent) -> anyhow::Result<()> {
         let mut cmd = Command::new(self.cmd());
 
+        let url = recent.url().to_string();
         match recent {
             Recent::Workspace {
-                workspace,
+                workspace: _,
                 label: _,
-                remote_authority,
+                remote_authority: _,
             } => {
-                if let Some(remote) = remote_authority {
-                    cmd.arg("--remote").arg(remote);
-                }
-                cmd.arg(&workspace.config_path);
+                cmd.arg("--file-uri").arg(url);
             }
             Recent::Folder {
-                folder_uri,
+                folder_uri: _,
                 label: _,
                 remote_authority: _,
             } => {
-                cmd.arg("--folder-uri").arg(folder_uri);
+                cmd.arg("--folder-uri").arg(url);
             }
             Recent::File {
-                file_uri,
+                file_uri: _,
                 label: _,
                 remote_authority: _,
             } => {
-                cmd.arg("--file-uri").arg(file_uri);
+                cmd.arg("--file-uri").arg(url);
             }
         }
         cmd.output()
@@ -145,7 +142,7 @@ impl FromStr for Flavor {
 /// - [Workspaces History Main Service](https://github.com/microsoft/vscode/blob/main/src/vs/platform/workspaces/electron-main/workspacesHistoryMainService.ts)
 /// - [workspaces common definitions](https://github.com/microsoft/vscode/blob/main/src/vs/platform/workspaces/common/workspaces.ts)
 pub mod workspaces {
-    use super::{open_state_db, path_from_url, tildify, Flavor, SCHEME_REMOTE};
+    use super::{open_state_db, tildify, Flavor, SCHEME_FILE, SCHEME_REMOTE};
     use std::{
         borrow::Cow,
         fmt::{self, Display},
@@ -156,6 +153,7 @@ pub mod workspaces {
     use rusqlite::{params, OpenFlags};
     use serde::{Deserialize, Serialize};
     use serde_json::{json, Value};
+    use url::Url;
 
     const VSCDB_HISTORY_KEY: &str = "history.recentlyOpenedPathsList";
 
@@ -174,10 +172,42 @@ pub mod workspaces {
         #[allow(dead_code)]
         pub id: String,
         /// Location of the `.code-workspace` file
-        pub config_path: String,
+        pub config_path: Url,
     }
 
     /// A recently opened item
+    ///
+    /// Each item has:
+    /// - an [url] that locates the file/folder
+    /// - a [label] that is shown to the user
+    /// - an optional [remote] that identifies the remote host of this item
+    ///
+    /// # Remote
+    /// Any item can either be located on the local filesystem or in a remote one, supported by the
+    /// [Remote Development](https://code.visualstudio.com/docs/remote/remote-overview) feature.
+    /// In the latter case, the [remote] identifies such host and has the form `{type}+{id}`.
+    ///
+    /// The following remotes are supported:
+    /// - [`ssh-remote+{host}`](https://code.visualstudio.com/docs/remote/ssh)
+    /// - [`dev-container+{container_id}`](https://code.visualstudio.com/docs/devcontainers/containers)
+    /// - [`wsl+{wsl_id}`](https://code.visualstudio.com/docs/remote/wsl)
+    ///
+    /// # URL
+    /// There are two types of URLs:
+    /// - local URLs with the form `file://{path}` that locate items on the local filesystem
+    /// - remote URLs with the form `vscode-remote://{remote}/{path} that locate items in remote hosts
+    ///
+    /// # Path
+    /// The item's `path` is a filesystem path that can be used to open it:
+    /// ```sh
+    /// # Local item
+    /// code {path}
+    ///
+    /// # Remote item
+    /// code --remote {remote} {path}
+    /// ```
+    ///
+    /// We currently support only local paths via [file_path].
     #[derive(Serialize, Deserialize, Debug)]
     #[serde(untagged)]
     pub enum Recent {
@@ -195,7 +225,7 @@ pub mod workspaces {
         /// A workspace with a single folder
         #[serde(rename_all = "camelCase")]
         Folder {
-            folder_uri: String,
+            folder_uri: Url,
             #[serde(skip_serializing_if = "Option::is_none")]
             label: Option<String>,
             #[serde(skip_serializing_if = "Option::is_none")]
@@ -204,7 +234,7 @@ pub mod workspaces {
         /// A single file
         #[serde(rename_all = "camelCase")]
         File {
-            file_uri: String,
+            file_uri: Url,
             #[serde(skip_serializing_if = "Option::is_none")]
             label: Option<String>,
             #[serde(skip_serializing_if = "Option::is_none")]
@@ -213,19 +243,20 @@ pub mod workspaces {
     }
 
     impl Recent {
-        pub fn uri(&self) -> &str {
+        /// Locates the item in a local or remote filesystem
+        pub fn url(&self) -> &Url {
             match self {
-                Recent::Workspace {
+                Self::Workspace {
                     workspace,
                     label: _,
                     remote_authority: _,
                 } => &workspace.config_path,
-                Recent::Folder {
+                Self::Folder {
                     folder_uri,
                     label: _,
                     remote_authority: _,
                 } => folder_uri,
-                Recent::File {
+                Self::File {
                     file_uri,
                     label: _,
                     remote_authority: _,
@@ -235,38 +266,41 @@ pub mod workspaces {
 
         /// Tells whether the item is local or remote
         pub fn is_remote(&self) -> bool {
-            return self.uri().starts_with(&format!("{}://", SCHEME_REMOTE));
+            return self.url().scheme() == SCHEME_REMOTE;
         }
 
-        /// Returns the file path that can be used to open this recent item
-        ///
-        /// The function should return a path `P` such that running
-        /// ```sh
-        /// code $P
-        /// ```
-        /// in a shell will open the recent item.
-        ///
-        /// The path is derived from the internal `file://` URL.
+        /// Returns the remote where this item is located, if any
+        pub fn remote(&self) -> Option<&str> {
+            match self {
+                Self::Workspace {
+                    workspace: _,
+                    label: _,
+                    remote_authority,
+                } => remote_authority.as_deref(),
+                Self::Folder {
+                    folder_uri: _,
+                    label: _,
+                    remote_authority,
+                } => remote_authority.as_deref(),
+                Self::File {
+                    file_uri: _,
+                    label: _,
+                    remote_authority,
+                } => remote_authority.as_deref(),
+            }
+        }
+
+        /// Returns the local file path that can be used to open this recent item
         ///
         /// # Errors
-        /// The call will fail if the URL has a scheme other than `file://` or if the URL path is not a valid system path.
-        pub fn path(&self) -> anyhow::Result<PathBuf> {
-            match self {
-                Recent::Workspace {
-                    workspace,
-                    label: _,
-                    remote_authority: _,
-                } => path_from_url(&workspace.config_path),
-                Recent::Folder {
-                    folder_uri,
-                    label: _,
-                    remote_authority: _,
-                } => path_from_url(folder_uri),
-                Recent::File {
-                    file_uri,
-                    label: _,
-                    remote_authority: _,
-                } => path_from_url(file_uri),
+        /// The call will fail if the URL's scheme is other than `file://`, or if the URL path is not a valid system path.
+        pub fn file_path(&self) -> anyhow::Result<PathBuf> {
+            let url = self.url();
+            match url.scheme() {
+                SCHEME_FILE => url
+                    .to_file_path()
+                    .map_err(|_| anyhow!("Could not get path from file url {}", url)),
+                _ => Err(anyhow!("Not a file url {}", url)),
             }
         }
 
@@ -290,7 +324,7 @@ pub mod workspaces {
                         .as_ref()
                         .map(Cow::from)
                         .ok_or(())
-                        .or_else(|_| Ok(Cow::from(tildify(&self.path()?))))
+                        .or_else(|_| Ok(Cow::from(tildify(&self.file_path()?))))
                 }
                 Recent::Folder {
                     folder_uri: _,
@@ -302,7 +336,7 @@ pub mod workspaces {
                         .as_ref()
                         .map(Cow::from)
                         .ok_or(())
-                        .or_else(|_| Ok(Cow::from(tildify(&self.path()?))))
+                        .or_else(|_| Ok(Cow::from(tildify(&self.file_path()?))))
                 }
                 Recent::File {
                     file_uri: _,
@@ -314,7 +348,7 @@ pub mod workspaces {
                         .as_ref()
                         .map(Cow::from)
                         .ok_or(())
-                        .or_else(|_| Ok(Cow::from(tildify(&self.path()?))))
+                        .or_else(|_| Ok(Cow::from(tildify(&self.file_path()?))))
                 }
             }
         }
@@ -382,9 +416,6 @@ pub mod workspaces {
     ///
     /// # Warning
     /// Workspaces that fail to deserialize to known data structures will be ignored.
-    /// Workspaces that have invalid URIs are still deserialized.
-    /// However, since this data is written by VSCode itself afther extensive checking,
-    /// it is unlikely that there are any invalid URIs.
     ///
     /// The entries will be looked up from VSCode's global storage inside the given `config_dir` configuration directory
     fn get_history_entries(config_dir: &Path, include_remote: bool) -> anyhow::Result<Vec<Recent>> {
@@ -437,9 +468,6 @@ pub mod workspaces {
     ///
     /// # Warning
     /// Workspaces that fail to deserialize to known data structures will be ignored.
-    /// Workspaces that have invalid URIs are still deserialized.
-    /// However, since this data is written by VSCode itself afther extensive checking,
-    /// it is unlikely that there are any invalid URIs.
     ///
     /// The entries will be looked up from VSCode's global storage
     pub fn recently_opened_from_storage(
@@ -495,20 +523,6 @@ fn open_state_db(config_dir: &Path, open_flags: Option<OpenFlags>) -> anyhow::Re
 
     Connection::open_with_flags(&db_path, open_flags)
         .with_context(|| format!("Could not open database {:?}", &db_path))
-}
-
-/// Converts an URL to its corresponding file path
-///
-/// # Errors
-/// The conversion will fail if the provided `input` is not a valid URL, or if it doesn't have the `file://` scheme.
-fn path_from_url(input: &str) -> Result<PathBuf> {
-    let url = Url::parse(input).with_context(|| format!("Cannot parse URL {}", input))?;
-    match url.scheme() {
-        SCHEME_FILE => url
-            .to_file_path()
-            .map_err(|_| anyhow!("Invalid URL file path {}", url)),
-        _ => Err(anyhow!("Unsupported URL scheme {}", url.scheme())),
-    }
 }
 
 /// Replace the home directory prefix of `path` with `~`
