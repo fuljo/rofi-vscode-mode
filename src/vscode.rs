@@ -178,14 +178,14 @@ pub mod workspaces {
     /// A recently opened item
     ///
     /// Each item has:
-    /// - an [url] that locates the file/folder
-    /// - a [label] that is shown to the user
-    /// - an optional [remote] that identifies the remote host of this item
+    /// - an [Self::url] that locates the file/folder
+    /// - a [Self::label] that is shown to the user
+    /// - an optional [Self::remote] that identifies the remote host of this item
     ///
     /// # Remote
     /// Any item can either be located on the local filesystem or in a remote one, supported by the
     /// [Remote Development](https://code.visualstudio.com/docs/remote/remote-overview) feature.
-    /// In the latter case, the [remote] identifies such host and has the form `{type}+{id}`.
+    /// In the latter case, the [Self::remote] identifies such host and has the form `{type}+{id}`.
     ///
     /// The following remotes are supported:
     /// - [`ssh-remote+{host}`](https://code.visualstudio.com/docs/remote/ssh)
@@ -207,7 +207,7 @@ pub mod workspaces {
     /// code --remote {remote} {path}
     /// ```
     ///
-    /// We currently support only local paths via [file_path].
+    /// We currently support only local paths via [Self::file_path].
     #[derive(Serialize, Deserialize, Debug)]
     #[serde(untagged)]
     pub enum Recent {
