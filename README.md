@@ -23,14 +23,14 @@ If you are curious, I wrote a short [wiki article](https://github.com/fuljo/rofi
 ## Install
 
 ### Build from source
-You can choose to build and install only the `vscode-recent` tool, only the plugin or both.
+You can choose to build and install only the `vscode-recent` tool (binary), only the plugin or both.
 
 First clone this repository
 ```sh
 git clone https://github.com/fuljo/rofi-vscode-mode
 ```
 
-Then get [Rust](https://www.rust-lang.org/tools/install) as you prefer.
+Then get a [Rust toolchain](https://www.rust-lang.org/tools/install) as you prefer.
 
 Then install the needed dependencies
 ```sh
@@ -48,13 +48,16 @@ pacman -S \
 Then run `make` according to your choice:
 ```sh
 # Binary and plugin
-make install
+make all
+sudo make install
 
 # Binary only
-make install.bin
+make bin
+sudo make install.bin
 
 # Plugin only
-make install.plugin
+make plugin
+sudo make install.plugin
 ```
 
 ## Usage
