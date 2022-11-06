@@ -67,7 +67,7 @@ impl<'rofi> rofi_mode::Mode<'rofi> for VSCodeRecentMode<'rofi> {
         let flavor = determine_vscode_flavor().map_err(|e| eprint!("{:?}", e))?;
         // Initialize the entries
         let entries =
-            recently_opened_from_storage(&flavor, true).map_err(|e| eprint!("{:?}", e))?;
+            recently_opened_from_storage(&flavor, false).map_err(|e| eprint!("{:?}", e))?;
 
         let icon_config = determine_icon_config().map_err(|e| eprint!("{:?}", e))?;
 

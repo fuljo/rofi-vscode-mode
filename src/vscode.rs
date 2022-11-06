@@ -14,8 +14,12 @@ use which::which;
 
 use self::workspaces::Recent;
 
+#[allow(dead_code)]
 const SCHEME_FILE: &str = "file";
+#[allow(dead_code)]
 const SCHEME_REMOTE: &str = "vscode-remote";
+#[allow(dead_code)]
+const SCHEME_VIRTUAL: &str = "vscode-vfs";
 
 /// One of the possible VSCode flavors
 #[derive(PartialEq, Debug, Clone, Copy)]
@@ -76,7 +80,7 @@ impl Flavor {
     ///
     /// # Errors
     /// Opening the item may fail if [self.cmd()] is not found in `PATH`.
-    /// Currently, we support the `file://` and `vscode-remote://` schemes.
+    /// Currently, we support the `file://`, `vscode-remote://` and `vscode-vfs://` schemes.
     pub fn open_recent(&self, recent: &Recent) -> anyhow::Result<()> {
         let mut cmd = Command::new(self.cmd());
 
@@ -142,7 +146,7 @@ impl FromStr for Flavor {
 /// - [Workspaces History Main Service](https://github.com/microsoft/vscode/blob/main/src/vs/platform/workspaces/electron-main/workspacesHistoryMainService.ts)
 /// - [workspaces common definitions](https://github.com/microsoft/vscode/blob/main/src/vs/platform/workspaces/common/workspaces.ts)
 pub mod workspaces {
-    use super::{open_state_db, tildify, Flavor, SCHEME_FILE, SCHEME_REMOTE};
+    use super::{open_state_db, tildify, Flavor, SCHEME_FILE};
     use std::{
         borrow::Cow,
         fmt::{self, Display},
@@ -183,19 +187,25 @@ pub mod workspaces {
     /// - an optional [Self::remote] that identifies the remote host of this item
     ///
     /// # Remote
-    /// Any item can either be located on the local filesystem or in a remote one, supported by the
-    /// [Remote Development](https://code.visualstudio.com/docs/remote/remote-overview) feature.
-    /// In the latter case, the [Self::remote] identifies such host and has the form `{type}+{id}`.
+    /// Any item can either be located on the local filesystem, a remote one or a virtual one.
+    ///
+    /// Remote filesystems are supported by the [Remote Development](https://code.visualstudio.com/docs/remote/remote-overview) feature.
+    /// In this case, the [Self::remote] identifies such host and has the form `{type}+{id}`.
     ///
     /// The following remotes are supported:
     /// - [`ssh-remote+{host}`](https://code.visualstudio.com/docs/remote/ssh)
     /// - [`dev-container+{container_id}`](https://code.visualstudio.com/docs/devcontainers/containers)
     /// - [`wsl+{wsl_id}`](https://code.visualstudio.com/docs/remote/wsl)
     ///
+    /// # Virtual
+    /// Virtual filesystems are used in [virtual workspaces](https://code.visualstudio.com/api/extension-guides/virtual-workspaces),
+    /// for example to open Github Repositories directly within VSCode.
+    ///
     /// # URL
-    /// There are two types of URLs:
+    /// There are three types of URLs:
     /// - local URLs with the form `file://{path}` that locate items on the local filesystem
-    /// - remote URLs with the form `vscode-remote://{remote}/{path} that locate items in remote hosts
+    /// - remote URLs with the form `vscode-remote://{remote}/{path}` that locate items in remote hosts
+    /// - virtual URLs with the form `vscode-vfs://{provider}/{path}` that locate items in virtual filesystems (e.g. GitHub)
     ///
     /// # Path
     /// The item's `path` is a filesystem path that can be used to open it:
@@ -264,9 +274,9 @@ pub mod workspaces {
             }
         }
 
-        /// Tells whether the item is local or remote
-        pub fn is_remote(&self) -> bool {
-            return self.url().scheme() == SCHEME_REMOTE;
+        /// Tells whether the item is local
+        pub fn is_local(&self) -> bool {
+            return self.url().scheme() == SCHEME_FILE;
         }
 
         /// Returns the remote where this item is located, if any
@@ -411,14 +421,14 @@ pub mod workspaces {
 
     /// Get recently opened workspaces, files and folders for specific flavor
     ///
-    /// If the `include_remote = false`, recent items for which [Recent::is_remote()] holds will be discarded.
+    /// If `local_only` is set, recent items for which [Recent::is_local()] does not hold will be discarded.
     /// This is useful if you need to open the items by path.
     ///
     /// # Warning
     /// Workspaces that fail to deserialize to known data structures will be ignored.
     ///
     /// The entries will be looked up from VSCode's global storage inside the given `config_dir` configuration directory
-    fn get_history_entries(config_dir: &Path, include_remote: bool) -> anyhow::Result<Vec<Recent>> {
+    fn get_history_entries(config_dir: &Path, local_only: bool) -> anyhow::Result<Vec<Recent>> {
         // Reference from `restoreRecentlyOpened` in
         // https://github.com/microsoft/vscode/blob/main/src/vs/platform/workspaces/common/workspaces.ts
 
@@ -445,9 +455,9 @@ pub mod workspaces {
             .as_array()
             .ok_or_else(|| anyhow!("History object's \"entries\" attribute is not an array"))?;
 
-        let filter: fn(&Recent) -> bool = match include_remote {
-            true => |_| true,
-            false => |e| !e.is_remote(),
+        let filter: fn(&Recent) -> bool = match local_only {
+            false => |_| true,
+            true => |e| e.is_local(),
         };
         let entries = entries
             .iter()
@@ -463,7 +473,7 @@ pub mod workspaces {
     /// This function will retrieve the items from the _global storage_ of the
     /// given `flavor`. The items are sorted from the most to the least recent
     ///
-    /// If the `include_remote = false`, recent items for which [Recent::is_remote()] holds will be discarded.
+    /// If `local_only` is set, recent items for which [Recent::is_local()] does not hold will be discarded.
     /// This is useful if you need to open the items by path.
     ///
     /// # Warning
@@ -472,7 +482,7 @@ pub mod workspaces {
     /// The entries will be looked up from VSCode's global storage
     pub fn recently_opened_from_storage(
         flavor: &Flavor,
-        include_remote: bool,
+        local_only: bool,
     ) -> anyhow::Result<Vec<Recent>> {
         let config_dir = flavor.config_dir().ok_or_else(|| {
             anyhow!(
@@ -480,7 +490,7 @@ pub mod workspaces {
                 flavor
             )
         })?;
-        get_history_entries(&config_dir, include_remote)
+        get_history_entries(&config_dir, local_only)
     }
 
     /// Store the workspaces into VSCode's state

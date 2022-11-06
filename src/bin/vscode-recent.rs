@@ -19,15 +19,15 @@ use rofi_vscode_mode::{
 pub enum OutputFormat {
     /// Label (if provided), otherise tildified path
     ///
-    /// Remote items won't be shown
+    /// Shows only local items
     Label,
     /// Absolute path
     ///
-    /// Remote items won't be shown
+    /// Shows only local items
     AbsolutePath,
     /// URI
     ///
-    /// Remote items will be shown
+    /// Shows all items
     Uri,
 }
 
@@ -67,14 +67,14 @@ fn main() -> anyhow::Result<()> {
         None => determine_vscode_flavor()?, // fallback to ENV variable or detect
     };
 
-    // Include remote items? Only if we are able to open them from command line with a URI
-    let include_remote = match args.output_format {
-        OutputFormat::Uri => true,
-        OutputFormat::Label | OutputFormat::AbsolutePath => false,
+    // Include non-local items? Only if we are able to open them from command line with a URI
+    let local_only = match args.output_format {
+        OutputFormat::Uri => false,
+        OutputFormat::Label | OutputFormat::AbsolutePath => true,
     };
 
     // Query and print the entries
-    let entries = recently_opened_from_storage(&flavor, include_remote)?;
+    let entries = recently_opened_from_storage(&flavor, local_only)?;
     for entry in entries {
         if let Ok(s) = format_entry(&entry, &args.output_format) {
             println!("{}", s)

@@ -12,7 +12,7 @@ Main features:
 - The `vscode-recent` command line tool to print paths of recent workspaces and files to stdout. Pair it with a selection tool like [dmenu](https://tools.suckless.org/dmenu/), [fzf](https://github.com/junegunn/fzf) or similar.
 - Entries are taken from VSCode's _File->Open Recent_ menu.
 - Delete entries from recently opened (also affects VSCode).
-- Support for [remote](https://code.visualstudio.com/docs/remote/remote-overview) workspaces, files and folders.
+- Support for [remote](https://code.visualstudio.com/docs/remote/remote-overview) and [virtual](https://code.visualstudio.com/api/extension-guides/virtual-workspaces) workspaces, files and folders.
 - Support for different flavors: [Visual Studio Code](https://code.visualstudio.com), [Visual Studio Code Insiders](https://code.visualstudio.com/insiders), [Code - OSS](https://github.com/microsoft/vscode) and [VSCodium](https://vscodium.com).
 
 This project was largely inspired by [rofi-code](https://github.com/Coffelius).
@@ -90,15 +90,15 @@ When an item is selected, press:
 If you prefer something other than Rofi to select your entry, we also provide the `vscode-recent` command that simply writes out the paths line by line. You can then pair it with your favourite selection tool, like [dmenu](https://tools.suckless.org/dmenu/) or [fzf](https://github.com/junegunn/fz).
 
 You can use the `-c` option to set the preferred flavor and the `-F` option to set the desired ouput format:
-- `label` (default) will show the "tildified" path, which needs to be expanded. Remote entries are not shown.
+- `label` (default) will show the "tildified" path, which needs to be expanded. Only local entries are not shown.
   ```sh
   sh -c "code $(vscode-recent | dmenu)"
   ```
-- `absolute-path` will show the full path. Remote entries are not shown.
+- `absolute-path` will show the full path. Only local entries are not shown.
   ```sh
   code $(vscode-recent -F absolute-path | dmenu)
   ```
-- `uri` will show the locl or remote URI, read [this](https://code.visualstudio.com/docs/remote/troubleshooting#_ssh-tips) for hints on how to open it. Remote entries are shown.
+- `uri` will show the local or remote URI, read [this](https://code.visualstudio.com/docs/remote/troubleshooting#_ssh-tips) for hints on how to open it. All entries are shown.
 
 
 ## Configuration
