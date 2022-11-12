@@ -1,5 +1,5 @@
 # Based on: https://github.com/BurntSushi/ripgrep/blob/master/.github/workflows/ci.yml
-name: Continuous Integration
+name: CI
 
 on:
   workflow_dispatch:
@@ -7,13 +7,16 @@ on:
   push:
     branches:
       - main
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+
 env:
   BINNAME: vscode-recent
   LIBNAME: librofi_vscode_mode.so
 
 jobs:
-  test:
-    name: Test
+  build:
+    name: Build
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
