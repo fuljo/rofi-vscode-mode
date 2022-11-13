@@ -12,13 +12,13 @@ source=("$pkgname-$pkgver.tar.gz::@@REPO_URL@@/archive/v$pkgver.tar.gz")
 sha512sums=()
 
 prepare() {
-  cd "$pkgname-v$pkgver"
+  cd "$pkgname-$pkgver"
 
   cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
 }
 
 build() {
-  cd "$pkgname-v$pkgver"
+  cd "$pkgname-$pkgver"
 
   export RUSTUP_TOOLCHAIN=stable
   export CARGO_TARGET_DIR=target
@@ -26,14 +26,14 @@ build() {
 }
 
 check() {
-  cd "$pkgname-v$pkgver"
+  cd "$pkgname-$pkgver"
 
   export RUSTUP_TOOLCHAIN=stable
   cargo test --frozen --release
 }
 
 package() {
-  cd "$pkgname-v$pkgver"
+  cd "$pkgname-$pkgver"
 
   make all install install.doc install.licenses DESTDIR="${pkgdir}" prefix="/usr"
 }
