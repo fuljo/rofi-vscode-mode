@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  release:
+    types: [created]
+
+env:
+  BINNAME: vscode-recent
+  LIBNAME: librofi_vscode_mode.so
+
+jobs:
+  aur:
+    name: AUR
+    runs-on: ubuntu-latest
+    if: github.repository == 'fuljo/rofi-vscode-mode'
+    env:
+      BUILD_DIR: build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Generate package metadata
+        run: cargo metadata --no-deps --format-version 1 > metadata.json
+
+      - name: Generate PKGBUILD
+        run: >
+          ci/generate_pkgbuild.py
+          --template ci/PKGBUILD.in
+          --package-release 1
+          --metadata metadata.json
+          --out-dir .
+
+      - run: cat PKGBUILD
+
+      - name: Publish PKGBUILD
+        uses: KSXGitHub/github-actions-deploy-aur@v2.5.0
+        with:
+          pkgname: rofi-vscode-mode
+          pkgbuild: PKGBUILD
+          updpkgsums: true
+          test: true
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: ${{ secrets.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
