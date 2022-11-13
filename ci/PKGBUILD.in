@@ -35,5 +35,5 @@ check() {
 package() {
   cd "$pkgname-$pkgver"
 
-  make all install install.doc install.licenses DESTDIR="${pkgdir}" prefix="/usr"
+  make install install.doc install.licenses DESTDIR="${pkgdir}" prefix="/usr"
 }
