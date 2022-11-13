@@ -1,0 +1,39 @@
+# Maintainer: Alessandro Fulgini <fuljo97 at gmail dot com>
+pkgname=@@NAME@@
+pkgver=@@VERSION@@
+pkgrel=@@RELEASE@@
+pkgdesc=@@DESCRIPTION@@
+arch=('x86_64')
+url=@@URL@@
+license=@@LICENSE@@
+depends=('rofi' 'sqlite')
+makedepends=('pkg-config' 'cargo')
+source=("$pkgname-$pkgver.tar.gz::@@REPO_URL@@/archive/v$pkgver.tar.gz")
+sha512sums=()
+
+prepare() {
+  cd "$pkgname-v$pkgver"
+
+  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+}
+
+build() {
+  cd "$pkgname-v$pkgver"
+
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
+  cargo build --frozen --release
+}
+
+check() {
+  cd "$pkgname-v$pkgver"
+
+  export RUSTUP_TOOLCHAIN=stable
+  cargo test --frozen --release
+}
+
+package() {
+  cd "$pkgname-v$pkgver"
+
+  make all install install.doc install.licenses DESTDIR="${pkgdir}" prefix="/usr"
+}
