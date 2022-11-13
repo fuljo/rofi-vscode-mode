@@ -7,7 +7,7 @@ arch=('x86_64')
 url=@@URL@@
 license=@@LICENSE@@
 depends=('rofi' 'sqlite')
-makedepends=('pkg-config' 'cargo')
+makedepends=('make' 'pkg-config' 'cargo')
 source=("$pkgname-$pkgver.tar.gz::@@REPO_URL@@/archive/v$pkgver.tar.gz")
 sha512sums=()
 
