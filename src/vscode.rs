@@ -22,7 +22,7 @@ const SCHEME_REMOTE: &str = "vscode-remote";
 const SCHEME_VIRTUAL: &str = "vscode-vfs";
 
 /// One of the possible VSCode flavors
-#[derive(PartialEq, Debug, Clone, Copy)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum Flavor {
     Code,
     CodeInsiders,
