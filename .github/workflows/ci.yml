@@ -31,6 +31,17 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
+          components: clippy
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install common dependencies
         run: ci/install-common-deps-ubuntu
@@ -47,6 +58,14 @@ jobs:
       - name: Run tests
         run: cargo test --verbose --workspace
 
+      - name: Lint
+        run: cargo clippy --all-targets --all-features --tests --all -- -D warnings
+
+      - name: Check documentation
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --no-deps --document-private-items --workspace
+
   rustfmt:
     name: rustfmt
     runs-on: ubuntu-latest
@@ -61,39 +80,15 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all --check
 
-  docs:
-    name: Docs
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-
-      - name: Install common dependencies
-        run: ci/install-common-deps-ubuntu
-
-      - name: Install rofi dependencies
-        run: ci/install-rofi-deps-ubuntu
-
-      - name: Check documentation
-        env:
-          RUSTDOCFLAGS: -D warnings
-        run: cargo doc --no-deps --document-private-items --workspace
-
   release:
     name: Release
     runs-on: ubuntu-latest
-    needs: [build, rustfmt, docs]
+    needs: [build, rustfmt]
     if: |
       github.repository == 'fuljo/rofi-vscode-mode' &&
       github.ref_type == 'tag' &&
       needs.build.result == 'success' &&
-      needs.rustfmt.result == 'success' &&
-      needs.docs.result == 'success'
+      needs.rustfmt.result == 'success'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
