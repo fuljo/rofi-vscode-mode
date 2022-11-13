@@ -36,16 +36,19 @@ install: install.plugin install.bin
 
 # Just install the plugin
 install.plugin:
-	install -D $(CARGO_RELEASE_DIR)/$(LIBNAME) $(DESTDIR)$(pluginsdir)
+	install -Dt $(DESTDIR)$(pluginsdir) $(CARGO_RELEASE_DIR)/$(LIBNAME)
 
 # Just install the binary
 install.bin:
-	install -D $(CARGO_RELEASE_DIR)/$(BINNAME) $(DESTDIR)$(bindir)
+	install -Dt $(DESTDIR)$(bindir) $(CARGO_RELEASE_DIR)/$(BINNAME)
 
 install.doc:
-	install -D README.md $(DESTDIR)$(docdir)
+	install -Dt $(DESTDIR)$(docdir) README.md
 
 install.licenses:
-	install -D LICENSE $(DESTDIR)$(licensesdir)
+	install -Dt $(DESTDIR)$(licensesdir) LICENSE
 
-.PHONY: all plugin bin install install.plugin install.bin install.doc install.licences
+clean:
+	$(CARGO) clean
+
+.PHONY: all plugin bin install install.plugin install.bin install.doc install.licences clean
