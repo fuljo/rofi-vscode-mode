@@ -39,12 +39,13 @@ jobs:
       - run: cat PKGBUILD
 
       - name: Publish PKGBUILD
-        uses: KSXGitHub/github-actions-deploy-aur@v2.5.0
+        uses: fuljo/github-actions-deploy-aur@master
         with:
           pkgname: rofi-vscode-mode
           pkgbuild: PKGBUILD
           updpkgsums: true
           test: true
+          test_flags: --clean --cleanbuild --syncdeps --install --noconfirm
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
