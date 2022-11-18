@@ -22,6 +22,13 @@ If you are curious, I wrote a short [wiki article](https://github.com/fuljo/rofi
 
 ## Install
 
+### Package manager
+If you're an Arch Linux user, this package is available [on the AUR](https://aur.archlinux.org/packages/rofi-vscode-mode).
+You can easily install it with an AUR helper like `yay`, `paru`, `pacaur`, etc.
+```sh
+yay -S rofi-vscode-mode
+```
+
 ### Build from source
 You can choose to build and install only the `vscode-recent` tool (binary), only the plugin or both.
 
