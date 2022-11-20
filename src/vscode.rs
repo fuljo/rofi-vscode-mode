@@ -468,6 +468,29 @@ pub mod workspaces {
         Ok(entries)
     }
 
+    /// Store the workspaces into VSCode's state
+    ///
+    /// Performs the reverse operation of [get_history_entries],
+    /// see its documentation for details.
+    fn store_history_entries(config_dir: &Path, entries: &[Recent]) -> anyhow::Result<()> {
+        // Open DB
+        let open_flags = Some(OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_NO_MUTEX);
+        let conn = open_state_db(config_dir, open_flags)?;
+
+        // Serialize to JSON
+        let value = json!({
+            "entries": entries,
+        });
+
+        // Update DB
+        conn.execute(
+            "UPDATE ItemTable SET value = (?2) WHERE key = (?1)",
+            params![VSCDB_HISTORY_KEY, value],
+        )
+        .with_context(|| "Could not update state in DB")
+        .map(|_| ())
+    }
+
     /// Get recently opened workspaces, files and folders
     ///
     /// This function will retrieve the items from the _global storage_ of the
@@ -505,22 +528,7 @@ pub mod workspaces {
             )
         })?;
 
-        // Open DB
-        let open_flags = Some(OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_NO_MUTEX);
-        let conn = open_state_db(&config_dir, open_flags)?;
-
-        // Serialize to JSON
-        let value = json!({
-            "entries": entries,
-        });
-
-        // Update DB
-        conn.execute(
-            "UPDATE ItemTable SET value = (?2) WHERE key = (?1)",
-            params![VSCDB_HISTORY_KEY, value],
-        )
-        .with_context(|| "Could not update state in DB")
-        .map(|_| ())
+        store_history_entries(&config_dir, entries)
     }
 }
 
