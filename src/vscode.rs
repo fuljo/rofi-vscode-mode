@@ -530,6 +530,104 @@ pub mod workspaces {
 
         store_history_entries(&config_dir, entries)
     }
+
+    #[cfg(test)]
+    mod tests {
+        use std::path::Path;
+
+        use serde_json::json;
+        use url::Url;
+
+        use super::Recent;
+
+        #[test]
+        fn local_workspace_properties() {
+            let json = json!({
+                "workspace": {
+                    "id": "0dd79faa9035cb0db768dbe5812a110cc0814402251661dc2d8973f89767444e",
+                    "configPath": "file:///home/m1ch43l-g4ry-sc0tt/threat-level-midnight.workspace"
+                },
+                "label": "Threat Level: Midnight [Workspace]",
+            });
+
+            let recent: Recent = serde_json::from_value(json).expect("could not deserialize");
+            if let Recent::Workspace {
+                workspace,
+                label,
+                remote_authority,
+            } = &recent
+            {
+                // Check the fields
+                assert_eq!(
+                    workspace.id,
+                    "0dd79faa9035cb0db768dbe5812a110cc0814402251661dc2d8973f89767444e"
+                );
+                let url = Url::try_from(
+                    "file:///home/m1ch43l-g4ry-sc0tt/threat-level-midnight.workspace",
+                )
+                .unwrap();
+                assert_eq!(workspace.config_path, url);
+                assert_eq!(label.as_deref(), Some("Threat Level: Midnight [Workspace]"));
+                assert!(remote_authority.is_none());
+                // Check other properties
+                assert_eq!(recent.url().as_str(), url.as_str());
+                assert!(recent.is_local());
+                assert!(recent.remote().is_none());
+
+                let file_path = recent.file_path().expect("expected file path");
+                assert_eq!(
+                    &file_path,
+                    Path::new("/home/m1ch43l-g4ry-sc0tt/threat-level-midnight.workspace")
+                );
+
+                let label = recent.label().expect("expected a label");
+                assert_eq!(label, "Threat Level: Midnight [Workspace]");
+            } else {
+                panic!("Expected to deserialize a workspace")
+            }
+        }
+
+        #[test]
+        fn remote_workspace_properties() {
+            let json = json!({
+                "workspace": {
+                    "id": "0dd79faa9035cb0db768dbe5812a110cc0814402251661dc2d8973f89767444e",
+                    "configPath": "vscode-remote://ssh%2Bdunder-mifflin/home/m1ch43l-g4ry-sc0tt/threat-level-midnight.workspace"
+                },
+                "label": "Threat Level: Midnight [SSH]",
+                "remoteAuthority": "ssh+dunder-mifflin",
+            });
+
+            let recent: Recent = serde_json::from_value(json).expect("could not deserialize");
+            if let Recent::Workspace {
+                workspace,
+                label,
+                remote_authority,
+            } = &recent
+            {
+                // Check the fields
+                assert_eq!(
+                    workspace.id,
+                    "0dd79faa9035cb0db768dbe5812a110cc0814402251661dc2d8973f89767444e"
+                );
+                let url = Url::try_from("vscode-remote://ssh%2Bdunder-mifflin/home/m1ch43l-g4ry-sc0tt/threat-level-midnight.workspace").unwrap();
+                assert_eq!(workspace.config_path, url);
+                assert_eq!(label.as_deref(), Some("Threat Level: Midnight [SSH]"));
+                assert_eq!(remote_authority.as_deref(), Some("ssh+dunder-mifflin"));
+                // Check other properties
+                assert_eq!(recent.url().as_str(), url.as_str());
+                assert!(!recent.is_local());
+                assert_eq!(recent.remote(), Some("ssh+dunder-mifflin"));
+
+                // A file path may or may not be returned
+
+                let label = recent.label().expect("expected a label");
+                assert_eq!(label, "Threat Level: Midnight [SSH]");
+            } else {
+                panic!("Expected to deserialize a workspace")
+            }
+        }
+    }
 }
 
 fn open_state_db(config_dir: &Path, open_flags: Option<OpenFlags>) -> anyhow::Result<Connection> {
