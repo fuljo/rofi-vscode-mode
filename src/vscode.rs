@@ -567,3 +567,57 @@ pub fn untildify(path: &str) -> PathBuf {
         })
         .unwrap_or(path)
 }
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+
+    use super::{tildify, untildify};
+
+    #[test]
+    fn tildify_inside_home() {
+        let mut path = dirs::home_dir().expect("expected a home directory");
+        path.push("projects");
+        path.push("my-rust-project");
+
+        let tildified = tildify(&path);
+        assert_eq!(&tildified, "~/projects/my-rust-project");
+    }
+
+    #[test]
+    fn tildify_outside_home() {
+        let s = "/var/media/usb-drive/my-rust-project";
+
+        let res = tildify(Path::new(s));
+        assert_eq!(&res, "/var/media/usb-drive/my-rust-project");
+    }
+
+    #[test]
+    fn untildify_inside_home() {
+        let s = "~/projects/my-rust-project";
+        let res = untildify(s);
+
+        let mut expected = dirs::home_dir().expect("expected a home directory");
+        expected.push("projects");
+        expected.push("my-rust-project");
+        assert_eq!(&res, &expected);
+    }
+
+    #[test]
+    fn untildify_outside_home() {
+        let s = "/var/media/usb-drive/my-rust-project";
+
+        let res = untildify(s);
+        assert_eq!(&res, Path::new(s));
+    }
+
+    #[test]
+    fn untildify_inverse_of_tildify() {
+        let mut path = dirs::home_dir().expect("expected a home directory");
+        path.push("projects");
+        path.push("my-rust-project");
+
+        let res = untildify(&tildify(&path));
+        assert_eq!(&res, &path);
+    }
+}
