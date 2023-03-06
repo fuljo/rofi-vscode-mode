@@ -25,7 +25,7 @@ name = "vscode-recent"
 [dependencies]
 # Common
 anyhow = "1.0"
-clap = { version = "4.0", features = ["derive"]}
+clap = { version = "4.1", features = ["derive"]}
 dirs = "4.0"
 rusqlite = { version = "0.28", features = ["serde_json"]}
 serde = { version = "1.0", features = ["derive"] }
