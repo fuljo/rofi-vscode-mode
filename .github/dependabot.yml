@@ -1,0 +1,23 @@
+version: 2
+updates:
+  # Enable version updates for Cargo
+  - package-ecosystem: "cargo"
+    # Look for `Cargo.toml` and `lock` files in the `root` directory
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      timezone: "Europe/Rome"
+    allow:
+      - dependency-type: "direct"
+    ignore:
+      # These are peer deps of Cargo and should not be automatically bumped
+      - dependency-name: "semver"
+      - dependency-name: "crates-io"
+    assignees:
+      - "fuljo"
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      timezone: "Europe/Rome"
