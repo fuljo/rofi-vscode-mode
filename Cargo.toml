@@ -31,7 +31,7 @@ rusqlite = { version = "0.28", features = ["serde_json"]}
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 url = { version = "2.3", features = ["serde"]}
-which = "4.3"
+which = "4.4"
 # Rofi-only
 pangocairo = { version = "0.15", optional = true } # should be consistent with the dependency from rofi-mode
 rofi-mode = { version = "0.2", optional = true }
