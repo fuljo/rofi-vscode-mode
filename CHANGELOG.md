@@ -2,11 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2023-03-06
+
+### Miscellaneous Tasks
+
+- Add pre-commit hook to enforce conventional commits
+
+### Testing
+
+- Add tests for tildify/untildify
+- Add tests for the Workspace entry
+
 ## [0.2.0] - 2022-11-13
 
 ### Features
 
 - [**breaking**] Support for remote entries
+
+### Miscellaneous Tasks
+
+- Derive Eq for Flavor
 
 ## [0.1.0] - 2022-11-12
 
