@@ -42,7 +42,6 @@ sign-commit = true
 sign-tag = true
 push = false
 pre-release-commit-message = "chore(release): prepare for {{version}}"
-post-release-commit-message = "chore(release): start next development iteration {{next_version}}"
 tag-message = "chore(release): {{crate_name}} version {{version}}"
 pre-release-hook = [
     "git-cliff", "--config", "Cargo.toml", "--tag", "{{version}}", "--output", "CHANGELOG.md"
