@@ -45,7 +45,7 @@ jobs:
       - run: cat PKGBUILD
 
       - name: Publish PKGBUILD
-        uses: KSXGitHub/github-actions-deploy-aur@v2.6.0
+        uses: KSXGitHub/github-actions-deploy-aur@v2.7.0
         with:
           pkgname: rofi-vscode-mode
           pkgbuild: PKGBUILD
