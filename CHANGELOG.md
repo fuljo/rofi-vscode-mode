@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2023-04-17
+
+### Miscellaneous Tasks
+
+- Upgrade pre-commit config
+
 ## [0.3.0] - 2023-03-06
 
 ### Miscellaneous Tasks
