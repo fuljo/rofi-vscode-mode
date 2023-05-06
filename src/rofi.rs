@@ -212,8 +212,7 @@ fn draw_nerd_icon(
     let cr = cairo::Context::new(&surface)?;
 
     // Set text layout
-    let layout =
-        pangocairo::create_layout(&cr).ok_or_else(|| anyhow!("Could not create Pango layout"))?;
+    let layout = pangocairo::create_layout(&cr);
     let font_size = f64::from(size) * 0.75;
     let desc = pango::FontDescription::from_string(&format!("{} {}", font, font_size));
     layout.set_font_description(Some(&desc));
