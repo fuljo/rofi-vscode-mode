@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.2] - 2023-06-22
+
+### Miscellaneous Tasks
+
+- Upgrade python language version for black
+- Upgrade pre-commit config
+
 ## [0.4.0] - 2023-04-17
 
 ### Miscellaneous Tasks
