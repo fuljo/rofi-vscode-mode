@@ -17,20 +17,15 @@ const ENV_ICON_FONT: &str = "ROFI_VSCODE_ICON_FONT";
 const ENV_ICON_COLOR: &str = "ROFI_VSCODE_ICON_COLOR";
 
 /// How to show icons next to items
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub enum IconMode {
     /// No icons (default)
     None,
     /// From current icon theme
+    #[default]
     Theme,
     /// From the given nerd font
     Nerd,
-}
-
-impl Default for IconMode {
-    fn default() -> Self {
-        IconMode::Theme
-    }
 }
 
 /// Configuration for the icons
