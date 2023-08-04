@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.5] - 2023-08-04
+
+### Bug Fixes
+
+- Derive Default trait for IconMode
+
 ## [0.5.2] - 2023-06-22
 
 ### Miscellaneous Tasks
