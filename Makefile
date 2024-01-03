@@ -17,7 +17,7 @@ licensesdir ?= $(datarootdir)/licenses/$(PKGNAME)
 
 # Find the directory to install plugins (only expand if needed)
 pluginsdir_pc = $(shell pkg-config --variable pluginsdir rofi)
-pluginsdir ?= $(if $(pluginsdir_pc),$(pluginsdir_pc),$(lbdir)/rofi)
+pluginsdir ?= $(if $(pluginsdir_pc),$(pluginsdir_pc),$(libdir)/rofi)
 
 # Build everything
 all:
