@@ -96,7 +96,9 @@ impl<'rofi> rofi_mode::Mode<'rofi> for VSCodeRecentMode<'rofi> {
             IconMode::Theme => self
                 .api
                 .query_icon(entry.icon_name(), height)
-                .wait(&mut self.api),
+                .wait(&mut self.api)
+                .map_err(|e| eprintln!("{}", e))
+                .ok(),
             IconMode::Nerd => draw_nerd_icon(
                 entry.nerd_icon(),
                 &self.icon_config.font,
@@ -207,7 +209,7 @@ fn draw_nerd_icon(
     let cr = cairo::Context::new(&surface)?;
 
     // Set text layout
-    let layout = pangocairo::create_layout(&cr);
+    let layout = pangocairo::functions::create_layout(&cr);
     let font_size = f64::from(size) * 0.75;
     let desc = pango::FontDescription::from_string(&format!("{} {}", font, font_size));
     layout.set_font_description(Some(&desc));
@@ -223,8 +225,8 @@ fn draw_nerd_icon(
     // Draw the text
     let RGBAColor(red, green, blue, alpha) = color;
     cr.set_source_rgba(red, green, blue, alpha);
-    pangocairo::update_layout(&cr, &layout);
-    pangocairo::show_layout(&cr, &layout);
+    pangocairo::functions::update_layout(&cr, &layout);
+    pangocairo::functions::show_layout(&cr, &layout);
 
     Ok(surface)
 }
