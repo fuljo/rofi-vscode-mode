@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.6.0] - 2024-05-05
+## [0.6.1] - 2024-05-05
+
+### Bug Fixes
+
+- Correct typo in Makefile
 
 ### Miscellaneous Tasks
 
