@@ -20,6 +20,6 @@ pub fn determine_vscode_flavor() -> anyhow::Result<Flavor> {
     } else {
         Flavor::detect()
             .ok_or_else(|| anyhow!("Could not find any suitable VSCode flavor"))
-            .map(|d| *d)
+            .copied()
     }
 }
