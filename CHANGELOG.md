@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2024-05-05
+
+### Miscellaneous Tasks
+
+- Upgrade dependencies to latest version
+
 ## [0.5.5] - 2023-08-04
 
 ### Bug Fixes
