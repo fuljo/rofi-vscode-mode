@@ -24,7 +24,7 @@ jobs:
       PKGREL: ${{ github.event.inputs.aur_pkgrel || '1' }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
@@ -45,7 +45,7 @@ jobs:
       - run: cat PKGBUILD
 
       - name: Publish PKGBUILD
-        uses: KSXGitHub/github-actions-deploy-aur@v2.7.0
+        uses: KSXGitHub/github-actions-deploy-aur@v2.7.1
         with:
           pkgname: rofi-vscode-mode
           pkgbuild: PKGBUILD
