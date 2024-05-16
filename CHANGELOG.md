@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.2] - 2024-05-16
+
+### Bug Fixes
+
+- Prevent CARGO_HOME variable from leaking into Arch container
+
+### Miscellaneous Tasks
+
+- Update Python version in pre-commit config
+
 ## [0.6.1] - 2024-05-05
 
 ### Bug Fixes
