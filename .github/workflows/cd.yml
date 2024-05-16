@@ -46,6 +46,9 @@ jobs:
 
       - name: Publish PKGBUILD
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.1
+        env:
+          # Workaround: prevent this variable set from the `rust-toolchain` action from leaking into the container
+          CARGO_HOME: "/home/builder/.cargo"
         with:
           pkgname: rofi-vscode-mode
           pkgbuild: PKGBUILD
