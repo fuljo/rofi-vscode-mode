@@ -101,16 +101,16 @@ You can use the `-c` option to set the preferred flavor and the `-F` option to s
   ```sh
   sh -c "code $(vscode-recent | dmenu)"
   ```
-- `absolute-path` will show the full path. Only local entries are not shown.
+- `absolute-path` will show the full path. Only local entries are shown.
   ```sh
   code $(vscode-recent -F absolute-path | dmenu)
   ```
-- `uri` will show the local or remote URI, read [this](https://code.visualstudio.com/docs/remote/troubleshooting#_ssh-tips) for hints on how to open it. All entries are shown.
+- `uri` will show the local or remote URI, read [this](https://code.visualstudio.com/docs/remote/troubleshooting#_connect-to-a-remote-host-from-the-terminal) for hints on how to open it. All entries are shown.
 
 
 ## Configuration
 Various aspects of this plugin can be configured with environment variables.
-If you are using keyboard shortcuts to launch Rofi, make sure that these variables are set in Usagethe shell that launches Rofi, e.g. by adding an `export` statement to your `~/.bash_profile`.
+If you are using keyboard shortcuts to launch Rofi, make sure that these variables are set in the shell that launches Rofi, e.g. by adding an `export` statement to your `~/.bash_profile`.
 
 Configuration of the theme and everything else is left to Rofi itself.
 
