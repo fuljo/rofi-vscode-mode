@@ -108,7 +108,7 @@ impl Flavor {
                 cmd.arg("--file-uri").arg(url);
             }
         }
-        cmd.output()
+        cmd.spawn()
             .map(|_| ())
             .with_context(|| format!("Could not open entry with {}", self.cmd()))
     }
@@ -120,7 +120,7 @@ impl Flavor {
     pub fn open_local_path<S: AsRef<OsStr>>(&self, path: S) -> Result<()> {
         Command::new(self.cmd())
             .arg(path)
-            .output()
+            .spawn()
             .map(|_| ())
             .with_context(|| "Could not execute VSCode")
     }
