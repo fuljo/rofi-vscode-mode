@@ -2,11 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.0] - 2024-11-12
+
+### Miscellaneous Tasks
+
+- Upgrade dependencies to latest version
+
 ## [0.6.3] - 2024-07-28
 
 ### Miscellaneous Tasks
 
 - Upgrade dependencies to latest version
+- Upgrade KSXGitHub/github-actions-deploy-aur to v2.7.2
 
 ## [0.6.2] - 2024-05-16
 
