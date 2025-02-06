@@ -276,7 +276,7 @@ pub mod workspaces {
 
         /// Tells whether the item is local
         pub fn is_local(&self) -> bool {
-            return self.url().scheme() == SCHEME_FILE;
+            self.url().scheme() == SCHEME_FILE
         }
 
         /// Returns the remote where this item is located, if any
