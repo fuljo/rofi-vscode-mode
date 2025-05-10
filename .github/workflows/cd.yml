@@ -45,7 +45,7 @@ jobs:
       - run: cat PKGBUILD
 
       - name: Publish PKGBUILD
-        uses: KSXGitHub/github-actions-deploy-aur@v3
+        uses: KSXGitHub/github-actions-deploy-aur@v4.1.1
         env:
           # Workaround: prevent this variable set from the `rust-toolchain` action from leaking into the container
           CARGO_HOME: "/home/builder/.cargo"
