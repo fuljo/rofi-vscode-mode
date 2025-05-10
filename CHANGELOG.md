@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.1] - 2025-05-10
+
+### Miscellaneous Tasks
+
+- Update pre-commit hooks
+- Upgrade dependencies to latest version
+
 ## [0.8.0] - 2025-02-06
 
 ### Miscellaneous Tasks
