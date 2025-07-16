@@ -77,7 +77,7 @@ fn main() -> anyhow::Result<()> {
     let entries = recently_opened_from_storage(&flavor, local_only)?;
     for entry in entries {
         if let Ok(s) = format_entry(&entry, &args.output_format) {
-            println!("{}", s)
+            println!("{s}")
         }
     }
     Ok(())

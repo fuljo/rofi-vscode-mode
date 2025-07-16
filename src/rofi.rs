@@ -59,12 +59,11 @@ impl<'rofi> rofi_mode::Mode<'rofi> for VSCodeRecentMode<'rofi> {
         // Set name
         api.set_display_name("Open Recent");
         // Initialize vscode flavor
-        let flavor = determine_vscode_flavor().map_err(|e| eprint!("{:?}", e))?;
+        let flavor = determine_vscode_flavor().map_err(|e| eprint!("{e:?}"))?;
         // Initialize the entries
-        let entries =
-            recently_opened_from_storage(&flavor, false).map_err(|e| eprint!("{:?}", e))?;
+        let entries = recently_opened_from_storage(&flavor, false).map_err(|e| eprint!("{e:?}"))?;
 
-        let icon_config = determine_icon_config().map_err(|e| eprint!("{:?}", e))?;
+        let icon_config = determine_icon_config().map_err(|e| eprint!("{e:?}"))?;
 
         Ok(VSCodeRecentMode {
             api,
@@ -83,7 +82,7 @@ impl<'rofi> rofi_mode::Mode<'rofi> for VSCodeRecentMode<'rofi> {
         match self.entries[line].label() {
             Ok(label) => rofi::String::from(label.as_ref()),
             Err(e) => {
-                eprint!("{}", e);
+                eprint!("{e}");
                 rofi::String::new()
             }
         }
@@ -97,7 +96,7 @@ impl<'rofi> rofi_mode::Mode<'rofi> for VSCodeRecentMode<'rofi> {
                 .api
                 .query_icon(entry.icon_name(), height)
                 .wait(&mut self.api)
-                .map_err(|e| eprintln!("{}", e))
+                .map_err(|e| eprintln!("{e}"))
                 .ok(),
             IconMode::Nerd => draw_nerd_icon(
                 entry.nerd_icon(),
@@ -105,7 +104,7 @@ impl<'rofi> rofi_mode::Mode<'rofi> for VSCodeRecentMode<'rofi> {
                 self.icon_config.color,
                 height,
             )
-            .map_err(|e| eprintln!("{}", e))
+            .map_err(|e| eprintln!("{e}"))
             .ok(),
         }
     }
@@ -155,7 +154,7 @@ impl<'rofi> rofi_mode::Mode<'rofi> for VSCodeRecentMode<'rofi> {
         match res {
             Ok(a) => a,
             Err(e) => {
-                eprint!("{:?}", e);
+                eprint!("{e:?}");
                 Action::Exit
             }
         }
@@ -211,7 +210,7 @@ fn draw_nerd_icon(
     // Set text layout
     let layout = pangocairo::functions::create_layout(&cr);
     let font_size = f64::from(size) * 0.75;
-    let desc = pango::FontDescription::from_string(&format!("{} {}", font, font_size));
+    let desc = pango::FontDescription::from_string(&format!("{font} {font_size}"));
     layout.set_font_description(Some(&desc));
     layout.set_alignment(pango::Alignment::Center);
     layout.set_text(text);

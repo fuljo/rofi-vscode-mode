@@ -415,7 +415,7 @@ pub mod workspaces {
     impl Display for Recent {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             let label = self.label().map_err(|_| fmt::Error)?;
-            write!(f, "{}", label)
+            write!(f, "{label}")
         }
     }
 
@@ -444,10 +444,7 @@ pub mod workspaces {
                 |r| r.get(0),
             )
             .with_context(|| {
-                format!(
-                    "Could not retrieve key \"{}\" from state DB as JSON",
-                    VSCDB_HISTORY_KEY
-                )
+                format!("Could not retrieve key \"{VSCDB_HISTORY_KEY}\" from state DB as JSON")
             })?;
 
         // Deserialize the JSON array to our datatypes
