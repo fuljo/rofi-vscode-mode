@@ -27,11 +27,11 @@ name = "vscode-recent"
 anyhow = "1.0"
 clap = { version = "4.5", features = ["derive"]}
 dirs = "6.0"
-rusqlite = { version = "0.35", features = ["serde_json"]}
+rusqlite = { version = "0.37", features = ["serde_json"]}
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 url = { version = "2.5", features = ["serde"]}
-which = "7.0"
+which = "8.0"
 # Rofi-only
 pangocairo = { version = "0.19", optional = true } # should be consistent with the dependency from rofi-mode
 rofi-mode = { version = "0.4", optional = true }
