@@ -322,7 +322,7 @@ pub mod workspaces {
         ///
         /// # Errors
         /// The call will fail if the URL has a scheme other than `file://` or if the URL path is not a valid system path.
-        pub fn label(&self) -> anyhow::Result<Cow<str>> {
+        pub fn label(&self) -> anyhow::Result<Cow<'_, str>> {
             match self {
                 Recent::Workspace {
                     workspace: _,
