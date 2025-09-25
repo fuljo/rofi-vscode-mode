@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0] - 2025-09-25
+
+### Bug Fixes
+
+- Fix lifetime for restult of Recent::label()
+
+### Miscellaneous Tasks
+
+- Update pre-commit hooks
+- Update rofi-mode and pangocairo dependencies
+
 ## [0.8.2] - 2025-07-16
 
 ### Miscellaneous Tasks
