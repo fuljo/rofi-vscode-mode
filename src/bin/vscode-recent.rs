@@ -15,11 +15,12 @@ use rofi_vscode_mode::{
 };
 
 /// How each item should be shown
-#[derive(Debug, Clone, Copy, ValueEnum)]
+#[derive(Debug, Clone, Copy, ValueEnum, Default)]
 pub enum OutputFormat {
     /// Label (if provided), otherise tildified path
     ///
     /// Shows only local items
+    #[default]
     Label,
     /// Absolute path
     ///
@@ -29,12 +30,6 @@ pub enum OutputFormat {
     ///
     /// Shows all items
     Uri,
-}
-
-impl Default for OutputFormat {
-    fn default() -> Self {
-        Self::Label
-    }
 }
 
 /// Print paths of recent Visual Studio Code workspaces and files
