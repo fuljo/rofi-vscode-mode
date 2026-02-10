@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.0] - 2026-02-10
+
+### Miscellaneous Tasks
+
+- Update pre-commit hooks
+- Update dependencies
+
 ## [0.9.0] - 2025-09-25
 
 ### Bug Fixes
