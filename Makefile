@@ -34,21 +34,40 @@ bin:
 # Install everything
 install: install.plugin install.bin
 
+# Uninstall everything installed by `make install`
+uninstall: uninstall.plugin uninstall.bin
+
 # Just install the plugin
 install.plugin:
 	install -Dt $(DESTDIR)$(pluginsdir) $(CARGO_RELEASE_DIR)/$(LIBNAME)
+
+# Just uninstall the plugin
+uninstall.plugin:
+	$(RM) $(DESTDIR)$(pluginsdir)/$(LIBNAME)
 
 # Just install the binary
 install.bin:
 	install -Dt $(DESTDIR)$(bindir) $(CARGO_RELEASE_DIR)/$(BINNAME)
 
+# Just uninstall the binary
+uninstall.bin:
+	$(RM) $(DESTDIR)$(bindir)/$(BINNAME)
+
 install.doc:
 	install -Dt $(DESTDIR)$(docdir) README.md
+
+uninstall.doc:
+	$(RM) $(DESTDIR)$(docdir)/README.md
+	-rmdir $(DESTDIR)$(docdir)
 
 install.licenses:
 	install -Dt $(DESTDIR)$(licensesdir) LICENSE
 
+uninstall.licenses:
+	$(RM) $(DESTDIR)$(licensesdir)/LICENSE
+	-rmdir $(DESTDIR)$(licensesdir)
+
 clean:
 	$(CARGO) clean
 
-.PHONY: all plugin bin install install.plugin install.bin install.doc install.licences clean
+.PHONY: all plugin bin install install.plugin install.bin install.doc install.licenses uninstall uninstall.plugin uninstall.bin uninstall.doc uninstall.licenses clean
