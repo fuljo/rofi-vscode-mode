@@ -67,6 +67,18 @@ make plugin
 sudo make install.plugin
 ```
 
+To uninstall files installed from source, run the matching uninstall target:
+```sh
+# Binary and plugin
+sudo make uninstall
+
+# Binary only
+sudo make uninstall.bin
+
+# Plugin only
+sudo make uninstall.plugin
+```
+
 ## Usage
 
 ### As a Rofi mode
