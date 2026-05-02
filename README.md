@@ -105,8 +105,6 @@ When an item is selected, press:
 
 :warning: Item deletion works by updating the recent items list in VSCode's state database. Do it at your own risk. Please use this feature when VSCode is closed, otherwise your changes may be overwritten.
 
-VS Code 1.118 and newer store the recent folders/files list in application shared storage so it can be shared with the VS Code Agents app. On Linux, stable VS Code uses `~/.vscode-shared/sharedStorage/state.vscdb` for that shared database. Older VS Code versions use `~/.config/Code/User/globalStorage/state.vscdb` instead. This tool tries the shared storage location first and falls back to the legacy global storage database.
-
 ### As a command line tool
 If you prefer something other than Rofi to select your entry, we also provide the `vscode-recent` command that simply writes out the paths line by line. You can then pair it with your favourite selection tool, like [dmenu](https://tools.suckless.org/dmenu/) or [fzf](https://github.com/junegunn/fz).
 
