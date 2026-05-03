@@ -4,9 +4,8 @@ use std::env;
 
 use super::utils::determine_vscode_flavor;
 use super::vscode::{
-    untildify,
-    workspaces::{recently_opened_from_storage, store_recently_opened, Recent},
-    Flavor,
+    Flavor, untildify,
+    workspaces::{Recent, recently_opened_from_storage, store_recently_opened},
 };
 use anyhow::anyhow;
 use pangocairo::{self, cairo, pango};

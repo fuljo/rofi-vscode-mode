@@ -8,7 +8,7 @@ use std::{
     str::FromStr,
 };
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use rusqlite::{Connection, OpenFlags};
 use which::which;
 
@@ -163,17 +163,17 @@ impl FromStr for Flavor {
 /// - [Workspaces History Main Service](https://github.com/microsoft/vscode/blob/main/src/vs/platform/workspaces/electron-main/workspacesHistoryMainService.ts)
 /// - [workspaces common definitions](https://github.com/microsoft/vscode/blob/main/src/vs/platform/workspaces/common/workspaces.ts)
 pub mod workspaces {
-    use super::{open_state_db, tildify, Flavor, SCHEME_FILE};
+    use super::{Flavor, SCHEME_FILE, open_state_db, tildify};
     use std::{
         borrow::Cow,
         fmt::{self, Display},
         path::{Path, PathBuf},
     };
 
-    use anyhow::{anyhow, Context};
-    use rusqlite::{params, OpenFlags};
+    use anyhow::{Context, anyhow};
+    use rusqlite::{OpenFlags, params};
     use serde::{Deserialize, Serialize};
-    use serde_json::{json, Value};
+    use serde_json::{Value, json};
     use url::Url;
 
     const VSCDB_HISTORY_KEY: &str = "history.recentlyOpenedPathsList";
@@ -546,7 +546,7 @@ pub mod workspaces {
             time::{SystemTime, UNIX_EPOCH},
         };
 
-        use rusqlite::{params, Connection};
+        use rusqlite::{Connection, params};
         use serde_json::json;
         use url::Url;
 

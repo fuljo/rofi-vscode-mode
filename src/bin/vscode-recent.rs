@@ -9,8 +9,8 @@ use clap::{Parser, ValueEnum};
 use rofi_vscode_mode::{
     utils::determine_vscode_flavor,
     vscode::{
-        workspaces::{recently_opened_from_storage, Recent},
         Flavor,
+        workspaces::{Recent, recently_opened_from_storage},
     },
 };
 
