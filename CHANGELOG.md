@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.0] - 2026-05-03
+
+### Miscellaneous Tasks
+
+- Update github actions
+- Upgrade msrv
+- Upgrade dependencies
+- Reorder imports
+- Update pre-commit hooks
+- Update github actions
+
 ## [0.10.0] - 2026-02-10
 
 ### Miscellaneous Tasks

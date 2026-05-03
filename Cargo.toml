@@ -1,6 +1,6 @@
 [package]
 name = "rofi-vscode-mode"
-version = "0.10.0"
+version = "0.11.0"
 authors = ["Alessandro Fulgini <fuljo97@gmail.com>"]
 edition = "2024"
 rust-version = "1.86"
