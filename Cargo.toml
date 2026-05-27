@@ -3,7 +3,7 @@ name = "rofi-vscode-mode"
 version = "0.11.0"
 authors = ["Alessandro Fulgini <fuljo97@gmail.com>"]
 edition = "2024"
-rust-version = "1.86"
+rust-version = "1.92"
 description = "A Rofi mode to open Visual Studio Code workspaces"
 repository = "https://github.com/fuljo/rofi-vscode-mode"
 license = "MIT"
@@ -27,14 +27,14 @@ name = "vscode-recent"
 anyhow = "1.0"
 clap = { version = "4.6", features = ["derive"]}
 dirs = "6.0"
-rusqlite = { version = "0.39", features = ["serde_json"]}
+rusqlite = { version = "0.40", features = ["serde_json"]}
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 url = { version = "2.5", features = ["serde"]}
 which = "8.0"
 # Rofi-only
-pangocairo = { version = "0.21", optional = true } # should be consistent with the dependency from rofi-mode
-rofi-mode = { version = "0.5", optional = true }
+pangocairo = { version = "0.22", optional = true } # should be consistent with the dependency from rofi-mode
+rofi-mode = { version = "0.6", optional = true }
 
 # Configuration for cargo-release
 [package.metadata.release]
