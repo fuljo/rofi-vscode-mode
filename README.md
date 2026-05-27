@@ -129,15 +129,17 @@ Configuration of the theme and everything else is left to Rofi itself.
 ### VSCode flavor
 Multiple VSCode flavors exist for Linux, see the [Arch Wiki](https://wiki.archlinux.org/title/Visual_Studio_Code) for details.
 
-By default this plugin will try to detect a flavor for which both a command in `$PATH` and a configuration directory exist.
+By default this plugin will try to detect a flavor for which both a command in `$PATH` and the file `sharedStorage/state.vscdb` exist inside the shared data folder.
 If you want to select it by hand, set `ROFI_VSCODE_FLAVOR` with one of the following values (case insensitive):
 
-| `ROFI_VSCODE_FLAVOR` | Flavor                      | Command         | Configuration directory      |
-| -------------------- | --------------------------- | --------------- | ---------------------------- |
-| `code`               | Visual Studio Code          | `code`          | `~/.config/Code/`            |
-| `code-insiders`      | Visual Studio Code Insiders | `code-insiders` | `~/.config/Code - Insiders/` |
-| `code-oss`           | Code - OSS                  | `code-oss`      | `~/.config/Code - OSS/`      |
-| `vscodium`           | VSCodium                    | `codium`        | `~/.config/VSCodium/`        |
+| `ROFI_VSCODE_FLAVOR` | Flavor                         | Command            | Shared Data Folder              |
+| -------------------- | ------------------------------ | ------------------ | ------------------------------- |
+| `code`               | Visual Studio Code             | `code`             | `~/.vscode-shared/`             |
+| `code-insiders`      | Visual Studio Code Insiders    | `code-insiders`    | `~/.vscode-insiders-shared/`    |
+| `code-exploration`   | Visual Studio Code Exploration | `code-exploration` | `~/.vscode-exploration-shared/` |
+| `code-oss`           | Code - OSS                     | `code-oss`         | `~/.vscode-oss-shared/`         |
+| `vscodium`           | VSCodium                       | `codium`           | `~/.vscode-oss-shared/`         |
+| `vscodium-insiders`  | VSCodium Insiders              | `codium-insiders`  | `~/.vscodium-insiders/`         |
 
 ### Icons
 By default icons from Rofi's current icon theme are shown besides the entries. You have three choices:
