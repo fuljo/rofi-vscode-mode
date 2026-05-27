@@ -31,6 +31,7 @@ pub enum Flavor {
     CodeOSS,
     // https://github.com/VSCodium/vscodium/blob/master/prepare_vscode.sh
     VSCodium,
+    VSCodiumInsiders,
 }
 
 impl Flavor {
@@ -42,6 +43,7 @@ impl Flavor {
             Self::CodeInsiders => "code-insiders",
             Self::CodeOSS => "code-oss", // also provides `code`
             Self::VSCodium => "codium",  // also provides `vscodium`
+            Self::VSCodiumInsiders => "codium-insiders", // also provides `vscodium-insiders`
         }
     }
 
@@ -54,6 +56,7 @@ impl Flavor {
             Self::CodeInsiders => ".vscode-insiders-shared",
             Self::CodeOSS => ".vscode-oss-shared",
             Self::VSCodium => ".vscode-oss-shared",
+            Self::VSCodiumInsiders => ".vscodium-insiders",
         };
         let db_path = dirs::home_dir()
             .map(|p| p.join(subdir).join("sharedStorage").join("state.vscdb"))
@@ -69,6 +72,7 @@ impl Flavor {
             Self::CodeInsiders => "Code - Insiders",
             Self::CodeOSS => "Code - OSS",
             Self::VSCodium => "VSCodium",
+            Self::VSCodiumInsiders => "VSCodium - Insiders",
         };
         dirs::config_dir()
             .map(|p| {
@@ -158,6 +162,7 @@ impl FromStr for Flavor {
             "code-insiders" => Ok(Self::CodeInsiders),
             "code-oss" => Ok(Self::CodeOSS),
             "vscodium" | "codium" => Ok(Self::VSCodium),
+            "vscodium-insiders" | "codium-insiders" => Ok(Self::VSCodiumInsiders),
             _ => Err(anyhow!("\"{}\" does not match any VSCode flavor", s)),
         }
     }
