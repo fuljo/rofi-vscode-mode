@@ -129,10 +129,10 @@ impl<'rofi> rofi_mode::Mode<'rofi> for VSCodeRecentMode<'rofi> {
 
             // Autocomplete input from selected entry
             Event::Complete { selected } => {
-                if let Some(line) = selected {
-                    if let Ok(label) = self.entries[line].label() {
-                        *input = rofi::String::from(label.as_ref());
-                    }
+                if let Some(line) = selected
+                    && let Ok(label) = self.entries[line].label()
+                {
+                    *input = rofi::String::from(label.as_ref());
                 }
                 Ok(Action::Reset)
             }
