@@ -18,6 +18,7 @@ repos:
     -   id: fmt
     -   id: cargo-check
     -   id: clippy
+        args: ["--all-targets", "--all-features", "--tests", "--all", "--", "-D", "warnings"]
 -   repo: https://github.com/psf/black
     rev: 26.5.1
     hooks:
