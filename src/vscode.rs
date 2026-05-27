@@ -24,14 +24,18 @@ const SCHEME_VIRTUAL: &str = "vscode-vfs";
 /// One of the possible VSCode flavors
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum Flavor {
+    // For each flavor we report the source for the product.json file (or its patches) from which the properties are taken
+    // https://github.com/microsoft/vscode/blob/main/product.json
     Code,
     CodeInsiders,
     CodeOSS,
+    // https://github.com/VSCodium/vscodium/blob/master/prepare_vscode.sh
     VSCodium,
 }
 
 impl Flavor {
     //// The command to run the flavor
+    //// The command is composed as `{applicationName}` from product.json
     pub fn cmd(&self) -> &str {
         match self {
             Self::Code => "code",
@@ -44,11 +48,12 @@ impl Flavor {
     /// Path to the VSCode state database file, if it exists
     pub fn history_state_db_path(&self) -> Option<PathBuf> {
         // First check shared storage paths (highest priority)
+        // The path is composed as `{dataFolderName}-shared` from product.json
         let subdir = match self {
             Self::Code => ".vscode-shared",
             Self::CodeInsiders => ".vscode-insiders-shared",
             Self::CodeOSS => ".vscode-oss-shared",
-            Self::VSCodium => ".vscodium-shared",
+            Self::VSCodium => ".vscode-oss-shared",
         };
         let db_path = dirs::home_dir()
             .map(|p| p.join(subdir).join("sharedStorage").join("state.vscdb"))
@@ -58,6 +63,7 @@ impl Flavor {
         }
 
         // Then check legacy global storage path
+        // The path is composed as `{nameShort}-shared` from product.json
         let subdir = match self {
             Self::Code => "Code",
             Self::CodeInsiders => "Code - Insiders",
