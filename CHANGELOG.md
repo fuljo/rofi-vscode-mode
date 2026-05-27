@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.0] - 2026-05-27
+
+### Bug Fixes
+
+- Fix vscodium shared storage path
+
+### Features
+
+- Add support for vscodium insiders
+- Add support for vscode exploration
+
+### Miscellaneous Tasks
+
+- Upgrade msrv and dependencies
+- Update pre-commit hooks
+- Make pre-commit linting checks consistent with ci
+
 ## [0.11.0] - 2026-05-03
 
 ### Miscellaneous Tasks
