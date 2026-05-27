@@ -28,6 +28,7 @@ pub enum Flavor {
     // https://github.com/microsoft/vscode/blob/main/product.json
     Code,
     CodeInsiders,
+    CodeExploration,
     CodeOSS,
     // https://github.com/VSCodium/vscodium/blob/master/prepare_vscode.sh
     VSCodium,
@@ -41,6 +42,7 @@ impl Flavor {
         match self {
             Self::Code => "code",
             Self::CodeInsiders => "code-insiders",
+            Self::CodeExploration => "code-exploration",
             Self::CodeOSS => "code-oss", // also provides `code`
             Self::VSCodium => "codium",  // also provides `vscodium`
             Self::VSCodiumInsiders => "codium-insiders", // also provides `vscodium-insiders`
@@ -54,6 +56,7 @@ impl Flavor {
         let subdir = match self {
             Self::Code => ".vscode-shared",
             Self::CodeInsiders => ".vscode-insiders-shared",
+            Self::CodeExploration => ".vscode-exploration-shared",
             Self::CodeOSS => ".vscode-oss-shared",
             Self::VSCodium => ".vscode-oss-shared",
             Self::VSCodiumInsiders => ".vscodium-insiders",
@@ -70,6 +73,7 @@ impl Flavor {
         let subdir = match self {
             Self::Code => "Code",
             Self::CodeInsiders => "Code - Insiders",
+            Self::CodeExploration => "Code - Exploration",
             Self::CodeOSS => "Code - OSS",
             Self::VSCodium => "VSCodium",
             Self::VSCodiumInsiders => "VSCodium - Insiders",
@@ -160,6 +164,7 @@ impl FromStr for Flavor {
         match s.to_lowercase().as_ref() {
             "code" => Ok(Self::Code),
             "code-insiders" => Ok(Self::CodeInsiders),
+            "code-exploration" => Ok(Self::CodeExploration),
             "code-oss" => Ok(Self::CodeOSS),
             "vscodium" | "codium" => Ok(Self::VSCodium),
             "vscodium-insiders" | "codium-insiders" => Ok(Self::VSCodiumInsiders),
