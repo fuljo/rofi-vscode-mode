@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 
 import argparse
-from typing import List
 import json
-from pathlib import Path
 import re
+from pathlib import Path
 
 
 def sh_str(s: str) -> str:
     return f"'{s}'"
 
 
-def sh_array(l: List[str]) -> str:
+def sh_array(l: list[str]) -> str:
     return "(" + " ".join(map(sh_str, l)) + ")"
 
 
@@ -22,7 +21,7 @@ class PkgBuild:
     pkgdesc: str
     # arch: List[str]
     url: str
-    license: List[str]
+    license: list[str]
     # depends: List[str]
     # makedepends: List[str]
     # source: List[str]
