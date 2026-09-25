@@ -747,7 +747,7 @@ pub mod workspaces {
 fn open_state_db(db_path: &Path, open_flags: Option<OpenFlags>) -> anyhow::Result<Connection> {
     let open_flags = open_flags.unwrap_or_default();
     Connection::open_with_flags(db_path, open_flags)
-        .with_context(|| format!("Could not open database {:?}", &db_path))
+        .with_context(|| format!("Could not open database {:?}", db_path))
 }
 
 /// Replace the home directory prefix of `path` with `~`
