@@ -19,21 +19,11 @@ repos:
     -   id: cargo-check
     -   id: clippy
         args: ["--all-targets", "--all-features", "--tests", "--all", "--", "-D", "warnings"]
--   repo: https://github.com/psf/black
-    rev: 26.5.1
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.9
     hooks:
-      - id: black
-        language_version: python3
--   repo: local
-    hooks:
-      - id: pylint
-        name: pylint
-        entry: pylint
-        language: system
-        types: [python]
-        args:
-            [
-            "-rn", # Only display messages
-            "-sn", # Don't display the score
-            "--disable=C,R",
-            ]
+      - id: ruff-check
+        args: [ --fix ]
+        types_or: [ python ]
+      - id: ruff-format
+        types_or: [ python ]
