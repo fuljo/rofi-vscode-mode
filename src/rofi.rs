@@ -91,12 +91,13 @@ impl<'rofi> rofi_mode::Mode<'rofi> for VSCodeRecentMode<'rofi> {
         let entry = &self.entries[line];
         match self.icon_config.mode {
             IconMode::None => None,
-            IconMode::Theme => self
-                .api
-                .query_icon(entry.icon_name(), height)
-                .wait(&mut self.api)
-                .map_err(|e| eprintln!("{e}"))
-                .ok(),
+            IconMode::Theme => entry.icon_name(&self.flavor).iter().find_map(|icon_name| {
+                self.api
+                    .query_icon(icon_name, height)
+                    .wait(&mut self.api)
+                    .map_err(|error| eprintln!("{error}: {icon_name}: {entry}"))
+                    .ok()
+            }),
             IconMode::Nerd => draw_nerd_icon(
                 entry.nerd_icon(),
                 &self.icon_config.font,
