@@ -88,6 +88,22 @@ impl Flavor {
             .filter(|p| p.exists())
     }
 
+    /// Name of the icon to display from the icon theme
+    ///
+    /// This name can be used to query the icon from the icon theme
+    pub fn icon_name(&self) -> &'static [&'static str] {
+        // The icon name is composed as `{linuxIconName}` from product.json
+        // We also insert fallbacks as some distros change the icon name
+        match self {
+            Self::Code => &["vscode", "visual-studio-code"],
+            Self::CodeInsiders => &["code-insiders"],
+            Self::CodeExploration => &["code-exploration"],
+            Self::CodeOSS => &["code-oss", "com.visualstudio.code.oss"],
+            Self::VSCodium => &["vscodium"],
+            Self::VSCodiumInsiders => &["vscodium-insiders"],
+        }
+    }
+
     /// Tries to detect the preferred flavor
     ///
     /// It returns the first flavor for which it can find both:
@@ -401,23 +417,23 @@ pub mod workspaces {
         /// This name can be used to query the icon from the icon theme
         ///
         /// See the [Freedesktop documentation](https://specifications.freedesktop.org/icon-naming-spec/latest/ar01s04.html)
-        pub fn icon_name(&self) -> &str {
+        pub fn icon_name(&self, flavor: &Flavor) -> &'static [&'static str] {
             match self {
                 Self::Workspace {
                     workspace: _,
                     label: _,
                     remote_authority: _,
-                } => "visual-studio-code",
+                } => flavor.icon_name(),
                 Self::Folder {
                     folder_uri: _,
                     label: _,
                     remote_authority: _,
-                } => "folder",
+                } => &["folder"],
                 Self::File {
                     file_uri: _,
                     label: _,
                     remote_authority: _,
-                } => "text-x-generic",
+                } => &["text-x-generic"],
             }
         }
 
