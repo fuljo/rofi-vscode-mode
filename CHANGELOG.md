@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.0] - 2026-10-06
+
+### Bug Fixes
+
+- Select flavor-specific workspace icon, with fallback behavior
+
+### Miscellaneous Tasks
+
+- Migrate to ruff for python lint and format
+
 ## [0.12.1] - 2026-09-25
 
 ### Miscellaneous Tasks
