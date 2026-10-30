@@ -1,0 +1,7 @@
+{
+  "extends": ["config:recommended"],
+  "enabledManagers": ["cargo", "github-actions", "pre-commit"],
+  "semanticCommits": "enabled",
+  "semanticCommitType": "chore",
+  "semanticCommitScope": "deps"
+}
