@@ -49,23 +49,27 @@ impl Flavor {
         }
     }
 
-    /// Path to the VSCode state database file, if it exists
-    pub fn history_state_db_path(&self) -> Option<PathBuf> {
+    /// Candidate paths to the VSCode state database file, in order of priority
+    pub fn history_state_db_candidates(&self) -> Vec<PathBuf> {
+        let mut candidates = Vec::new();
+
         // First check shared storage paths (highest priority)
         // The path is composed as `{dataFolderName}-shared` from product.json
-        let subdir = match self {
-            Self::Code => ".vscode-shared",
-            Self::CodeInsiders => ".vscode-insiders-shared",
-            Self::CodeExploration => ".vscode-exploration-shared",
-            Self::CodeOSS => ".vscode-oss-shared",
-            Self::VSCodium => ".vscode-oss-shared",
-            Self::VSCodiumInsiders => ".vscodium-insiders",
+        let subdirs: &[&str] = match self {
+            Self::Code => &[".vscode-shared"],
+            Self::CodeInsiders => &[".vscode-insiders-shared"],
+            Self::CodeExploration => &[".vscode-exploration-shared"],
+            Self::CodeOSS => &[".vscode-oss-shared"],
+            Self::VSCodium => &[".vscode-oss-shared", ".vscodium-shared"],
+            Self::VSCodiumInsiders => &[".vscodium-insiders-shared", ".vscodium-insiders"],
         };
-        let db_path = dirs::home_dir()
-            .map(|p| p.join(subdir).join("sharedStorage").join("state.vscdb"))
-            .filter(|p| p.exists());
-        if db_path.is_some() {
-            return db_path;
+        if let Some(home) = dirs::home_dir() {
+            for subdir in subdirs {
+                let db_path = home.join(subdir).join("sharedStorage").join("state.vscdb");
+                if db_path.exists() && !candidates.contains(&db_path) {
+                    candidates.push(db_path);
+                }
+            }
         }
 
         // Then check legacy global storage path
@@ -78,7 +82,7 @@ impl Flavor {
             Self::VSCodium => "VSCodium",
             Self::VSCodiumInsiders => "VSCodium - Insiders",
         };
-        dirs::config_dir()
+        if let Some(legacy_path) = dirs::config_dir()
             .map(|p| {
                 p.join(subdir)
                     .join("User")
@@ -86,6 +90,17 @@ impl Flavor {
                     .join("state.vscdb")
             })
             .filter(|p| p.exists())
+            && !candidates.contains(&legacy_path)
+        {
+            candidates.push(legacy_path);
+        }
+
+        candidates
+    }
+
+    /// Path to the VSCode state database file, if it exists
+    pub fn history_state_db_path(&self) -> Option<PathBuf> {
+        self.history_state_db_candidates().into_iter().next()
     }
 
     /// Name of the icon to display from the icon theme
@@ -203,7 +218,7 @@ pub mod workspaces {
     };
 
     use anyhow::{Context, anyhow};
-    use rusqlite::{OpenFlags, params};
+    use rusqlite::{OpenFlags, OptionalExtension, params};
     use serde::{Deserialize, Serialize};
     use serde_json::{Value, json};
     use url::Url;
@@ -477,7 +492,15 @@ pub mod workspaces {
     /// Workspaces that fail to deserialize to known data structures will be ignored.
     ///
     /// The entries will be looked up from VSCode's state database.
-    fn get_history_entries(db_path: &Path, local_only: bool) -> anyhow::Result<Vec<Recent>> {
+    /// Get recently opened workspaces, files and folders for a specific database path
+    ///
+    /// Returns `Ok(Some(entries))` if the history key was found,
+    /// `Ok(None)` if the database exists and can be queried but the history key is not present,
+    /// or `Err` if the database cannot be opened or queried.
+    fn get_history_entries_optional(
+        db_path: &Path,
+        local_only: bool,
+    ) -> anyhow::Result<Option<Vec<Recent>>> {
         // Reference from `restoreRecentlyOpened` in
         // https://github.com/microsoft/vscode/blob/main/src/vs/platform/workspaces/common/workspaces.ts
 
@@ -486,15 +509,20 @@ pub mod workspaces {
         let conn = open_state_db(db_path, open_flags)?;
 
         // Retrieve the JSON value of the property
-        let res: Value = conn
+        let res: Option<Value> = conn
             .query_row(
                 "SELECT value FROM ItemTable WHERE key = (?)",
                 [VSCDB_HISTORY_KEY],
                 |r| r.get(0),
             )
+            .optional()
             .with_context(|| {
                 format!("Could not retrieve key \"{VSCDB_HISTORY_KEY}\" from state DB as JSON")
             })?;
+
+        let Some(res) = res else {
+            return Ok(None);
+        };
 
         // Deserialize the JSON array to our datatypes
         let entries = res["entries"]
@@ -511,7 +539,21 @@ pub mod workspaces {
             .filter(filter)
             .collect();
 
-        Ok(entries)
+        Ok(Some(entries))
+    }
+
+    /// Get recently opened workspaces, files and folders for specific database path
+    ///
+    /// If `local_only` is set, recent items for which [Recent::is_local()] does not hold will be discarded.
+    /// This is useful if you need to open the items by path.
+    ///
+    /// # Warning
+    /// Workspaces that fail to deserialize to known data structures will be ignored.
+    ///
+    /// The entries will be looked up from VSCode's state database.
+    #[allow(dead_code)]
+    fn get_history_entries(db_path: &Path, local_only: bool) -> anyhow::Result<Vec<Recent>> {
+        Ok(get_history_entries_optional(db_path, local_only)?.unwrap_or_default())
     }
 
     /// Store the workspaces into VSCode's state
@@ -553,10 +595,22 @@ pub mod workspaces {
         flavor: &Flavor,
         local_only: bool,
     ) -> anyhow::Result<Vec<Recent>> {
-        let db_path = flavor
-            .history_state_db_path()
-            .ok_or_else(|| anyhow!("Could not find state database for \"{:?}\"", flavor))?;
-        get_history_entries(&db_path, local_only)
+        let candidates = flavor.history_state_db_candidates();
+        if candidates.is_empty() {
+            return Err(anyhow!(
+                "Could not find state database for \"{:?}\"",
+                flavor
+            ));
+        }
+
+        for db_path in &candidates {
+            if let Some(entries) = get_history_entries_optional(db_path, local_only)? {
+                return Ok(entries);
+            }
+        }
+
+        // If none of the candidate databases contained the history key, return an empty list
+        Ok(Vec::new())
     }
 
     /// Store the workspaces into VSCode's state
@@ -564,10 +618,37 @@ pub mod workspaces {
     /// Performs the reverse operation of [recently_opened_from_storage],
     /// see its documentation for details.
     pub fn store_recently_opened(flavor: &Flavor, entries: &[Recent]) -> anyhow::Result<()> {
-        let db_path = flavor
-            .history_state_db_path()
-            .ok_or_else(|| anyhow!("Could not find state database for \"{:?}\"", flavor))?;
-        store_history_entries(&db_path, entries)
+        let candidates = flavor.history_state_db_candidates();
+        if candidates.is_empty() {
+            return Err(anyhow!(
+                "Could not find state database for \"{:?}\"",
+                flavor
+            ));
+        }
+
+        // If a candidate already has the history key, write to it.
+        // Otherwise, write to the first candidate (highest priority).
+        let target_path = candidates
+            .iter()
+            .find(|db_path| {
+                let open_flags =
+                    Some(OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX);
+                open_state_db(db_path, open_flags)
+                    .and_then(|conn| {
+                        conn.query_row(
+                            "SELECT 1 FROM ItemTable WHERE key = (?)",
+                            [VSCDB_HISTORY_KEY],
+                            |_| Ok(()),
+                        )
+                        .optional()
+                        .map_err(anyhow::Error::from)
+                    })
+                    .map(|opt| opt.is_some())
+                    .unwrap_or(false)
+            })
+            .unwrap_or(&candidates[0]);
+
+        store_history_entries(target_path, entries)
     }
 
     #[cfg(test)]
@@ -616,6 +697,19 @@ pub mod workspaces {
                 )
                 .expect("could not insert history value");
             }
+        }
+
+        #[test]
+        fn returns_empty_when_history_key_missing() {
+            let root = temp_dir("missing-history-key");
+            let db = root.join("state.vscdb");
+
+            create_history_db(&db, None);
+
+            let entries = get_history_entries(&db, false).expect("expected entries");
+            assert!(entries.is_empty());
+
+            fs::remove_dir_all(root).ok();
         }
 
         #[test]
