@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.1] - 2026-11-17
+
+### Bug Fixes
+
+- Update rust crate rusqlite to 0.41
+- Update rust crate rusqlite to 0.42
+- Update rust crate rusqlite to 0.43
+
+### Miscellaneous Tasks
+
+- Add renovate config
+- Update ksxgithub/github-actions-deploy-aur action to v4.2.0
+- Update rust crate serde_json to v1.0.154
+- Update actions/cache action to v6
+- Update actions/checkout action to v7
+- Update rust crate clap to v4.6.8
+
 ## [0.13.0] - 2026-10-06
 
 ### Bug Fixes
